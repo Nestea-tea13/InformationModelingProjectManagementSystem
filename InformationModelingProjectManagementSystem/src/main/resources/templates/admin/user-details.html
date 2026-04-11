@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>User Data</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
+    <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
+</head>
+
+<body>
+
+    <header th:insert="blocks/headers :: header-admin-page"></header>
+
+    <div class="container mt-4 text-center">
+        <h2>Личные данные сотрудника</h2><br>
+
+        <div class="card card-body" style="width: 60%; margin: 0 auto;">
+            <div class="row">
+                <div class="col-md-4">
+                    <small class="text-muted">Фамилия</small>
+                    <br><b><p th:text="${user.sername}"/></b>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Имя</small>
+                    <br><b><p th:text="${user.name}"/></b>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Отчество</small>
+                    <br><b><p th:text="${user.patronymic}"/></b>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-4">
+                    <small class="text-muted">Пол</small>
+                    <br><b><p th:text="${user.gender}"/></b>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">День рождения</small>
+                    <br><b><p th:text="${user.birthday}"/></b>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <small class="text-muted">Электронная почта</small>
+                    <br><b><p th:text="${user.email}"/></b>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <small class="text-muted">Должность</small>
+                    <br><b><p th:text="${user.position}"/></b>
+                </div>
+            </div>
+        </div><br>
+
+        <a class="btn btn-primary" th:href="@{/adminpage/{role}/{id}/edit(id=${user.id}, role='user')}" style="width: 140px;">Редактировать</a><br><br>
+        <a data-remodal-target="modal-remove" class="btn btn-danger" style="width: 140px;">Удалить</a>
+        
+        <div class="remodal text-center" data-remodal-id="modal-remove">
+            <button data-remodal-action="close" class="remodal-close"></button>
+            <h1>Подтверждение</h1>
+            <p>Вы действительно хотите удалить пользователя?<br>Данное действие невозможно будет отменить.</p>
+            <form th:action="'/adminpage/' + ${user.id} + '/remove'" method="post" id="secretKey" style="display: none;"></form>
+            <a class="remodal-confirm mr-4" href="#" onclick="document.getElementById('secretKey').submit();">Да, удалить</a>
+            <button data-remodal-action="cancel" class="remodal-cancel">Нет</button>
+        </div>
+
+    </div>
+    
+</body>
+</html>

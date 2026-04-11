@@ -1,0 +1,26 @@
+.scrollable-table {
+    height: 442px;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+}
+
+.myTable thead {
+    background-color:rgb(227, 253, 253);
+    position: sticky;
+    top: -1px;
+}
+
+.myTable thead::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0; right: 0; bottom: 0;
+    border-bottom: 1px solid rgb(224, 226, 226); 
+} 
+
+.scrollable-table {
+    border-top: 1px solid rgb(224, 226, 226); 
+} 
+
+.myTable tr {
+    scroll-snap-align: start;
+}

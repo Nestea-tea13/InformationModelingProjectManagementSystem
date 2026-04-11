@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head> 
+    <title>Add user</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/inputGroupText.css" />
+</head>
+
+<body>
+    <header th:insert="blocks/headers :: header-admin-page"></header>
+
+    <div class="container mt-4 text-center">
+        <h2 th:text="'Регистрация нового ' + (${flagEditUser} ? 'сотрудника' : 'администратора')"/><br>
+
+        <form th:action="@{/adminpage/person/add}" method="post" th:object="${person}" style="display: inline-block; width: 30rem;">  
+            <input type="hidden" th:field="*{password}"/>
+            <input type="hidden" th:field="*{role}"/>
+
+            <div class="text-justify" th:if="${#fields.hasErrors('sername')}" th:errors="*{sername}">Sername Error</div>
+            <div class="form-group row">
+                <label class="input-group-text">Фамилия</label>
+                <div class="col"> <input type="text" th:field="*{sername}" class="form-control" placeholder="Фамилия" oninput="this.value = this.value[0].toUpperCase() + this.value.slice(1).toLowerCase()"/> </div>
+            </div>
+
+            <div class="text-justify" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name Error</div>
+            <div class="form-group row">
+                <label class="input-group-text">Имя</label>
+                <div class="col"> <input type="text" th:field="*{name}" class="form-control" placeholder="Имя" oninput="this.value = this.value[0].toUpperCase() + this.value.slice(1).toLowerCase()"/> </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="input-group-text" style="height: 50%;">Отчество</label>
+                <div class="col"> 
+                    <input type="text" th:field="*{patronymic}" class="form-control" placeholder="Отчество" oninput="this.value = this.value[0].toUpperCase() + this.value.slice(1).toLowerCase()"/> 
+                    <p class="small float-left">* При отсутствии отчества ничего не вводить</p>
+                </div>
+            </div>
+
+            <div class="text-justify" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}">Gender Error</div> 
+            <div class="form-group row">
+                <label class="input-group-text">Пол</label>
+                <div class="col-md-1"></div>
+                <div class="form-check form-check-inline col-md-2">
+                    <input class="form-check-input" type="radio" id="1" th:field="*{gender}" value="женщина"/>
+                    <label class="form-check-label" for="1">женщина</label>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="form-check form-check-inline col-md-2">
+                    <input class="form-check-input" type="radio" id="2" th:field="*{gender}" value="мужчина"/>
+                    <label class="form-check-label" for="2">мужчина</label>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+
+            <div class="text-justify" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}">Birthday Error</div> 
+            <div class="form-group row">
+                <label class="input-group-text">Дата рождения</label>
+                <div class="col"> <input type="date" th:field="*{birthday}" class="form-control" th:min="${birthdayDateBorders[0]}" th:max="${birthdayDateBorders[1]}"/> </div>
+            </div>
+            
+            <div class="text-justify" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email Error</div>
+            <div class="form-group row">
+                <label class="input-group-text">Почта</label>
+                <div class="col"> <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="name@example.com"/> </div>
+            </div>
+
+            <div class="text-justify" th:if="${#fields.hasErrors('position')}" th:errors="*{position}">Position Error</div>
+            <div class="form-group row">
+                <label class="input-group-text">Должность</label>
+                <div class="col"> <input type="text" th:field="*{position}" class="form-control" id="position" placeholder="должность"/> </div>
+            </div>
+
+            <br><button type="submit" class="btn btn-success mr-4" style="width: 120px;">Добавить</button>
+            <a th:href="${flagEditUser} ? '/adminpage/users' : '/adminpage/admins'" class="btn btn-secondary" style="width: 120px;">Отмена</a>
+        </form>
+
+    </div>
+
+</body>
+</html>

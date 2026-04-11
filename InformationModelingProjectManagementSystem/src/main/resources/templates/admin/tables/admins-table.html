@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head> 
+    <title>Admins</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/scrollTable.css" />
+</head>
+
+<body>
+    <header th:insert="blocks/headers :: header-admin-page"></header>
+
+    <div class="container mt-4">
+        <h2 class="text-center">Администраторы системы</h2><br>
+       
+        <div class="row">
+            <div class="col-md-2"><a href="/adminpage/person/add?role=ROLE_ADMIN" class="btn btn-success">Добавить</a></div>
+            <div class="col-md-4"></div>
+            <div class="col-md-6">
+                <div class="row">
+                    <input class="form-control" id="inputFilter" type="text" placeholder="Поиск" style="width: 90%;">
+                    <button type="button" class="btn btn-outline-secondary" id="clearButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <div class="scrollable-table">
+            <table class="table table-bordered table-hover myTable">
+                <thead>
+                    <th th:each="h : ${headers}" th:text="${h}"/>
+                </thead>
+                <tbody id="adminsTable">
+                    <tr th:each="admin, iter : ${admins}">
+                        <td class="filterData" th:text="${iter.index}+1"></td>
+                        <td class="filterData" th:text="${admin.sername}"></td>
+                        <td class="filterData" th:text="${admin.name}"></td>
+                        <td class="filterData" th:text="${admin.patronymic}"></td>
+                        <td class="filterData" th:text="${admin.gender}"></td>
+                        <td class="filterData" th:text="${admin.birthday}"></td>
+                        <td class="filterData" th:text="${admin.email}"></td>
+                        <td><a th:href="@{/adminpage/{role}/{id}/edit(id=${admin.id}, role='admin')}">Редактировать</a></td>
+                    </tr>
+                </tbody>
+            </table>  
+        </div>
+        
+    </div>
+
+    <script> 
+        $(document).ready(function(){
+          $("#inputFilter").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#adminsTable tr").filter(function() {
+              $(this).toggle($(this).children('.filterData').text().toLowerCase().indexOf(value) > -1)
+            });
+          });
+        });
+
+        document.getElementById("clearButton").onclick = function(e) {
+            document.getElementById("inputFilter").value = "";
+            $("#inputFilter").keyup();
+        }
+    </script>
+
+</body>
+</html>
