@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
+import com.InformationModelingProjectManagementSystem.models.Position;
 
 @Repository
 public interface PeopleRepository extends CrudRepository<Person, Integer> {
@@ -15,4 +16,7 @@ public interface PeopleRepository extends CrudRepository<Person, Integer> {
 
     List<Person> findByRoleOrderBySername(String role);
     
+    List<Person> findByPosition(Position position);
+    
+    List<Person> findAllByOrderBySername();
 }

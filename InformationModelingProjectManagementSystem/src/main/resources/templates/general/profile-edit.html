@@ -24,7 +24,6 @@
             <input type="hidden" th:field="*{id}"/>
             <input type="hidden" th:field="*{password}"/>
             <input type="hidden" th:field="*{role}"/>
-            <input type="hidden" th:field="*{position}"/>
 
             <div class="text-justify" th:if="${#fields.hasErrors('sername')}" th:errors="*{sername}">Sername Error</div>
             <div class="form-group row">

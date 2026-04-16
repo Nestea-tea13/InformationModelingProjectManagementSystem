@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Форма должности</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        .checkbox-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .checkbox-item {
+            padding: 8px 12px;
+            margin: 0 -10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .checkbox-item:hover {
+            background-color: #f8f9fa;
+        }
+        .checkbox-item:last-child {
+            border-bottom: none;
+        }
+        .checkbox-item input {
+            margin-right: 12px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+        }
+        .checkbox-item label {
+            cursor: pointer;
+            margin: 0;
+            font-weight: normal;
+            vertical-align: middle;
+        }
+        .checkbox-item:hover label {
+            color: #007bff;
+        }
+        .select-all-btn {
+            margin-bottom: 10px;
+        }
+        .badge-info-custom {
+            background-color: #17a2b8;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<header th:insert="blocks/headers :: header-admin-page"></header>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 th:text="${position.id == 0} ? '➕ Создание новой должности' : '✏️ Редактирование должности'"></h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="${position.id == 0} ? '/adminpage/positions/create' : '/adminpage/positions/' + ${position.id} + '/edit'"
+                          method="post" th:object="${position}" id="positionForm">
+                        
+                        <!-- Ошибки валидации -->
+                        <div th:if="${#fields.hasErrors('name')}" class="alert alert-danger">
+                            <div th:errors="*{name}"></div>
+                        </div>
+                        
+                        <!-- Название должности -->
+                        <div class="form-group">
+                            <label for="name">Название должности <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{name}" id="name" 
+                                   class="form-control" 
+                                   placeholder="Например: BIM-координатор"
+                                   autofocus="autofocus">
+                            <small class="form-text text-muted">Уникальное название должности</small>
+                        </div>
+                        
+                        <div th:if="${#fields.hasErrors('canAssignTo')}" class="alert alert-danger">
+                            <div th:errors="*{canAssignTo}"></div>
+                        </div>
+                        
+                        <!-- Выбор подчиненных (чекбоксы) -->
+                        <div class="form-group">
+                            <label>
+                                <strong>Кому эта должность может назначать задачи?</strong>
+                                <span class="text-muted">(подчиненные)</span>
+                            </label>
+                            
+                            <!-- Кнопки для быстрого выбора -->
+                            <div class="select-all-btn">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="selectAllBtn">
+                                    Выбрать всех
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ml-2" id="deselectAllBtn">
+                                    Снять всех
+                                </button>
+                                <span class="badge-info-custom" id="selectedCount">Выбрано: 0</span>
+                            </div>
+                            
+                            <!-- Список с чекбоксами -->
+                            <div class="checkbox-list" id="checkboxList">
+                                <div th:each="possiblePosition : ${allPositions}" 
+                                     th:if="${possiblePosition.id != position.id}"
+                                     class="checkbox-item">
+                                    <input type="checkbox"
+                                           class="subordinate-checkbox"
+                                           th:id="'chk_' + ${possiblePosition.id}"
+                                           th:value="${possiblePosition.id}"
+                                           th:checked="${position.canAssignTo.contains(possiblePosition)}"
+                                           onclick="updateSelectedCount()">
+                                    <label th:for="'chk_' + ${possiblePosition.id}" 
+                                           th:text="${possiblePosition.name}">
+                                    </label>
+                                </div>
+                                <div th:if="${allPositions.size() <= 1}" class="text-muted text-center p-3">
+                                    Нет доступных должностей для выбора
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">
+                                Отметьте должности, которые будут подчиненными для этой роли
+                            </small>
+                        </div>
+                        
+                        <!-- Скрытое поле для отправки выбранных ID -->
+                        <input type="hidden" name="subordinateIds" id="subordinateIdsHidden">
+                        
+                        <!-- Кнопки (без иконок) -->
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-success px-4" onclick="prepareSubmit()">
+                                Сохранить
+                            </button>
+                            <a href="/adminpage/positions" class="btn btn-secondary px-4 ml-2">
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Дополнительная информация для редактирования -->
+            <div th:if="${position.id != 0}" class="card mt-3">
+                <div class="card-header bg-light">
+                    <small>Текущая информация о должности</small>
+                </div>
+                <div class="card-body small">
+                    <div th:if="${not #lists.isEmpty(position.canBeAssignedBy)}">
+                        <strong>👆 Кто может назначать задачи этой должности (начальники):</strong>
+                        <ul>
+                            <li th:each="assigner : ${position.canBeAssignedBy}" 
+                                th:text="${assigner.name}"></li>
+                        </ul>
+                    </div>
+                    <div th:unless="${not #lists.isEmpty(position.canBeAssignedBy)}">
+                        <em class="text-muted">Этой должности никто не может назначать задачи</em>
+                    </div>
+                    
+                    <div th:if="${not #lists.isEmpty(position.canAssignTo)}" class="mt-2">
+                        <strong>👇 Кому эта должность может назначать задачи (подчиненные):</strong>
+                        <ul>
+                            <li th:each="sub : ${position.canAssignTo}" 
+                                th:text="${sub.name}"></li>
+                        </ul>
+                    </div>
+                    <div th:unless="${not #lists.isEmpty(position.canAssignTo)}" class="mt-2">
+                        <em class="text-muted">Эта должность не может назначать задачи никому</em>
+                    </div>
+                </div>
+            </div>
+            <br>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Функция обновления счетчика выбранных
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('.subordinate-checkbox');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const selectedCountSpan = document.getElementById('selectedCount');
+        if (selectedCountSpan) {
+            selectedCountSpan.textContent = `Выбрано: ${checkedCount}`;
+        }
+    }
+    
+    // Функция подготовки данных перед отправкой формы
+    function prepareSubmit() {
+        const checkboxes = document.querySelectorAll('.subordinate-checkbox:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        const hiddenField = document.getElementById('subordinateIdsHidden');
+        hiddenField.value = selectedIds.join(',');
+    }
+    
+    // Выбрать всех
+    document.getElementById('selectAllBtn')?.addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.subordinate-checkbox');
+        checkboxes.forEach(cb => cb.checked = true);
+        updateSelectedCount();
+    });
+    
+    // Снять всех
+    document.getElementById('deselectAllBtn')?.addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.subordinate-checkbox');
+        checkboxes.forEach(cb => cb.checked = false);
+        updateSelectedCount();
+    });
+    
+    // Инициализация счетчика при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSelectedCount();
+        
+        // Добавляем обработчики на все чекбоксы для обновления счетчика
+        const checkboxes = document.querySelectorAll('.subordinate-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+    });
+    
+    // Клик по всей строке для удобства
+    document.querySelectorAll('.checkbox-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Если клик не по самому чекбоксу
+            if (e.target.type !== 'checkbox') {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelectedCount();
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

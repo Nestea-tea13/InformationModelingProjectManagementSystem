@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -49,9 +51,10 @@ public class Person {
     @Column(name = "role")
     private String role;
 
-    @NotEmpty(message = "Должность не должна быть пустой")
-    @Column(name = "position")
-    private String position;
+    // Связь с должностью (у администратора position = null)
+    @ManyToOne
+    @JoinColumn(name = "position_id", nullable = true)
+    private Position position;
 
     public Person() {}
 
@@ -127,12 +130,16 @@ public class Person {
         this.role = role;
     }
 
-    public String getPosition() {
-        return position;
+    public Position getPosition() { 
+        return position; 
     }
 
-    public void setPosition(String position) {
-        this.position = position;
+    public void setPosition(Position position) { 
+        this.position = position; 
+    }
+    
+    public String getPositionName() {
+        return position != null ? position.getName() : "Администратор";
     }
 
     public String generateRandomPassword() {

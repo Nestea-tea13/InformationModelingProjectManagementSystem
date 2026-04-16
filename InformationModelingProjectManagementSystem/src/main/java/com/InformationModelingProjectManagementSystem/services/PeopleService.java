@@ -1,5 +1,6 @@
 package com.InformationModelingProjectManagementSystem.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
+import com.InformationModelingProjectManagementSystem.models.Position;
 import com.InformationModelingProjectManagementSystem.repositories.PeopleRepository;
 import com.InformationModelingProjectManagementSystem.security.PersonDetails;
 
@@ -26,8 +28,7 @@ public class PeopleService {
     }
 
     public Iterable<Person> findByRole(String role) {
-        Iterable<Person> employees = peopleRepository.findByRoleOrderBySername(role);
-        return employees;
+        return peopleRepository.findByRoleOrderBySername(role);
     }
 
     public Optional<Person> findByEmail(String email) {
@@ -46,11 +47,21 @@ public class PeopleService {
         PersonDetails userDetails = (PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userDetails.getPerson();
     }
+    
+    public Iterable<Person> findAllWithPositions() {
+        return peopleRepository.findAllByOrderBySername();
+    }
+    
+    public List<Person> findByPosition(Position position) {
+        return peopleRepository.findByPosition(position);
+    }
 
     @Transactional
     public void updateCurrentPerson(Person updatedUser) {
         PersonDetails userDetails = (PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         updatedUser.setId(userDetails.getPerson().getId());
+        updatedUser.setRole(userDetails.getPerson().getRole());
+        updatedUser.setPassword(userDetails.getPerson().getPassword());
         userDetails.setPerson(updatedUser);
         peopleRepository.save(updatedUser);
     }
@@ -61,16 +72,20 @@ public class PeopleService {
         currentPerson.setPassword(password);
         peopleRepository.save(currentPerson);
     }
+    
+    @Transactional
+    public void updateUserPosition(int userId, Position newPosition) {
+        Person person = findPersonById(userId);
+        person.setPosition(newPosition);
+        peopleRepository.save(person);
+    }
 
     @Transactional
     public Person addPerson(Person person) {
         String textEmail = "Здравствуйте, " + person.getName() + "!\nВы зарегистрированы в системе управления проектами информационного моделирования строительной компании."
-                            + "\nВаша должность: " + person.getPosition(); 
-        
-        String randomPassword = person.generateRandomPassword();
-
-        textEmail += "\nСсылка на сайт: http://localhost:8080/\nЛогин: " + person.getEmail() 
-                + "\nПароль: " + randomPassword + "\nДанный пароль можно изменить в личном кабинете.";
+                            + "\nВаша должность: " + (person.getPosition() != null ? person.getPosition().getName() : "Администратор")
+                            + "\nСсылка на сайт: http://localhost:8080/\nЛогин: " + person.getEmail() 
+                            + "\nПароль: " + person.generateRandomPassword() + "\nДанный пароль можно изменить в личном кабинете.";
         
         peopleRepository.save(person);
 
@@ -89,5 +104,5 @@ public class PeopleService {
         Person person = peopleRepository.findById(id).orElseThrow();
         peopleRepository.delete(person);
     }
-
+    
 }

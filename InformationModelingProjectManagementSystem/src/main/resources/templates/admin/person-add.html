@@ -66,10 +66,21 @@
                 <div class="col"> <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="name@example.com"/> </div>
             </div>
 
-            <div class="text-justify" th:if="${#fields.hasErrors('position')}" th:errors="*{position}">Position Error</div>
-            <div class="form-group row">
-                <label class="input-group-text">Должность</label>
-                <div class="col"> <input type="text" th:field="*{position}" class="form-control" id="position" placeholder="должность"/> </div>
+            <!-- Выбор должности не для администраторов -->
+            <div th:if="${flagEditUser}">
+                <div class="text-justify" th:if="${#fields.hasErrors('position')}" th:errors="*{position}">Position Error</div>
+                <div class="form-group row">
+                    <label class="input-group-text">Должность</label>
+                    <div class="col">
+                        <select name="positionId" class="form-control" required>
+                            <option value="">— выберите должность —</option>
+                            <option th:each="pos : ${allPositions}" 
+                                    th:value="${pos.id}" 
+                                    th:text="${pos.name}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <br><button type="submit" class="btn btn-success mr-4" style="width: 120px;">Добавить</button>
