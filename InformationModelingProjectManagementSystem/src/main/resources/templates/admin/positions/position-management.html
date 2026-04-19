@@ -6,90 +6,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
     <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <link rel="stylesheet" type="text/css" href="/css/common-tables.css" />
     <script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
     <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
-    
-    <style>
-        .btn-icon {
-            padding: 0.25rem 0.5rem;
-            font-size: 1.1rem;
-        }
-        .btn-group-custom {
-            display: flex;
-            gap: 12px;
-        }
-        
-        /* Стиль для обычных подсказок (кнопки) - по центру */
-        [data-tooltip] {
-            position: relative;
-            cursor: pointer;
-        }
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 5px 10px;
-            background-color: #333;
-            color: white;
-            font-size: 12px;
-            border-radius: 4px;
-            white-space: nowrap;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s;
-            pointer-events: none;
-        }
-        [data-tooltip]:hover:before {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        /* Специальный стиль для заголовка таблицы - над текстом */
-        th[data-tooltip] {
-            cursor: help;
-            position: relative;
-        }
-        th[data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            transform: translateX(0);
-            padding: 5px 10px;
-            background-color: #333;
-            color: white;
-            font-size: 12px;
-            border-radius: 4px;
-            white-space: nowrap;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s;
-            pointer-events: none;
-            margin-bottom: 5px;
-        }
-        th[data-tooltip]:hover:before {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .alert-auto-hide {
-            transition: opacity 0.5s;
-        }
-    </style>
+    <script src="/js/table-search.js"></script>
 </head>
 <body>
 
 <header th:insert="blocks/headers :: header-admin-page"></header>
 
 <div class="container mt-4">
-    <h2 class="text-center">Управление должностями</h2>
-    <p class="text-center text-muted">Настройка иерархии: кто кому может назначать задачи</p>
+    <div class="page-header">
+        <h2 class="text-center">Управление должностями</h2>
+        <p class="text-center text-muted">Настройка иерархии: кто кому может назначать задачи</p>
+    </div>
     
-    <!-- Всплывающие уведомления -->
     <div th:if="${error}" class="alert alert-danger text-center alert-dismissible fade show alert-auto-hide" role="alert">
         <span th:text="${error}"></span>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -104,65 +35,71 @@
         </button>
     </div>
     
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><strong>📋 Должности в системе</strong></span>
-                    <a href="/adminpage/positions/create" 
-                       class="btn btn-success btn-sm"
-                       data-tooltip="Создать новую должность">
-                        ➕ Новая должность
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-bordered table-hover mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th style="width: 5%">№</th>
-                                <th style="width: 35%">Название</th>
-                                <th style="width: 45%" data-tooltip="Кому может назначать задачи">Подчиненные</th>
-                                <th style="width: 15%">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="pos, iterStat : ${positions}">
-                                <td class="text-center" th:text="${iterStat.index + 1}"></td>
-                                <td>
-                                    <strong th:text="${pos.name}"></strong>
-                                </td>
-                                <td>
-                                    <span th:each="sub, subIterStat : ${pos.canAssignTo}">
-                                        <span class="badge badge-secondary" th:text="${sub.name}"></span>
-                                        <span th:unless="${subIterStat.last}">, </span>
-                                    </span>
-                                    <span th:if="${pos.canAssignTo.isEmpty()}" class="text-muted">
-                                        <em>нет подчиненных</em>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group-custom">
-                                        <!-- Кнопка редактирования -->
-                                        <a th:href="'/adminpage/positions/' + ${pos.id} + '/edit'" 
-                                           class="btn btn-primary btn-sm btn-icon"
-                                           data-tooltip="Редактировать должность">
-                                            ✏️
-                                        </a>
-                                        
-                                        <!-- Кнопка удаления -->
-                                        <button type="button"
-                                                data-remodal-target="modal-delete-${pos.id}"
-                                                class="btn btn-danger btn-sm btn-icon"
-                                                data-tooltip="Удалить должность">
-                                            🗑️
-                                        </button>
-                                    </div>
-                                 </td>
-                             </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <span><strong>📋 Должности в системе</strong></span>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="form-control form-control-sm search-input" 
+                       placeholder="🔍 Поиск" data-tooltip="Поиск по любой ячейке">
+                <button type="button" id="clearSearchBtn" class="btn btn-sm btn-outline-secondary clear-btn" 
+                        data-tooltip="Очистить поиск">
+                    ✖
+                </button>
+                <a href="/adminpage/positions/create" 
+                   class="btn btn-success btn-sm add-btn"
+                   data-tooltip="Создать новую должность">
+                    ➕ Добавить
+                </a>
             </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0 admin-table" id="positionsTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width: 5%">№</th>
+                        <th style="width: 35%">Название</th>
+                        <th style="width: 45%" data-tooltip="Кому может назначать задачи">Подчиненные</th>
+                        <th style="width: 15%">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pos, iter : ${positions}">
+                        <td class="text-center" th:text="${iter.index + 1}"></td>
+                        <td>
+                            <strong th:text="${pos.name}"></strong>
+                        </td>
+                        <td>
+                            <span th:each="sub, subIter : ${pos.canAssignTo}">
+                                <span class="badge badge-secondary" th:text="${sub.name}"></span>
+                                <span th:unless="${subIter.last}">, </span>
+                            </span>
+                            <span th:if="${pos.canAssignTo.isEmpty()}" class="text-muted">
+                                <em>нет подчиненных</em>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group-custom">
+                                <a th:href="'/adminpage/positions/' + ${pos.id} + '/edit'" 
+                                   class="btn btn-primary btn-sm btn-icon"
+                                   data-tooltip="Редактировать должность">
+                                    ✏️
+                                </a>
+                                <button type="button"
+                                        data-remodal-target="modal-delete-${pos.id}"
+                                        class="btn btn-danger btn-sm btn-icon"
+                                        data-tooltip="Удалить должность">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${positions.isEmpty()}">
+                        <td colspan="4" class="text-center text-muted py-4">
+                            Нет созданных должностей
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -172,7 +109,6 @@
     <div class="remodal text-center" th:data-remodal-id="'modal-delete-' + ${pos.id}">
         <button data-remodal-action="close" class="remodal-close"></button>
         
-        <!-- Случай: можно удалить -->
         <div th:if="${pos.canAssignTo.isEmpty()}">
             <h1>🗑️ Удаление должности</h1>
             <p>Вы действительно хотите удалить должность <strong th:text="${pos.name}"></strong>?</p>
@@ -183,7 +119,6 @@
             </form>
         </div>
         
-        <!-- Случай: нельзя удалить (есть подчиненные) -->
         <div th:unless="${pos.canAssignTo.isEmpty()}">
             <h1>⛔ Невозможно удалить</h1>
             <p>Должность <strong th:text="${pos.name}"></strong> не может быть удалена, так как:</p>
@@ -202,10 +137,7 @@
 </div>
 
 <script>
-    // Автоматическое скрытие alert-сообщений через 5 секунд
-    setTimeout(function() {
-        $('.alert-auto-hide').fadeOut('slow');
-    }, 5000);
+    initTableSearch('searchInput', 'clearSearchBtn', 'positionsTable');
 </script>
 
 </body>

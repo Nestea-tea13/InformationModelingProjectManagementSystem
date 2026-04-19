@@ -6,54 +6,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
     <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <link rel="stylesheet" type="text/css" href="/css/common-tables.css" />
     <script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
     <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
-    <style>
-        .btn-icon {
-            padding: 0.25rem 0.5rem;
-            font-size: 1.1rem;
-        }
-        .btn-group-custom {
-            display: flex;
-            gap: 12px;
-        }
-        [data-tooltip] {
-            position: relative;
-            cursor: pointer;
-        }
-        [data-tooltip]:before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 5px 10px;
-            background-color: #333;
-            color: white;
-            font-size: 12px;
-            border-radius: 4px;
-            white-space: nowrap;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s;
-            pointer-events: none;
-        }
-        [data-tooltip]:hover:before {
-            opacity: 1;
-            visibility: visible;
-        }
-        .alert-auto-hide {
-            transition: opacity 0.5s;
-        }
-    </style>
+    <script src="/js/table-search.js"></script>
 </head>
 <body>
 
 <header th:insert="blocks/headers :: header-admin-page"></header>
 
 <div class="container mt-4">
-    <h2 class="text-center">Управление проектами</h2>
+    <div class="page-header">
+        <h2 class="text-center">Управление проектами</h2>
+    </div>
 
     <div th:if="${error}" class="alert alert-danger text-center alert-dismissible fade show alert-auto-hide" role="alert">
         <span th:text="${error}"></span>
@@ -70,38 +35,42 @@
     </div>
 
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
             <span><strong>📋 Проекты в системе</strong></span>
-            <a href="/adminpage/projects/create" 
-               class="btn btn-success btn-sm"
-               data-tooltip="Создать новый проект">
-                ➕ Новый проект
-            </a>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="form-control form-control-sm search-input" 
+                       placeholder="🔍 Поиск" data-tooltip="Поиск по любой ячейке">
+                <button type="button" id="clearSearchBtn" class="btn btn-sm btn-outline-secondary clear-btn" 
+                        data-tooltip="Очистить поиск">
+                    ✖
+                </button>
+                <a href="/adminpage/projects/create" 
+                   class="btn btn-success btn-sm add-btn"
+                   data-tooltip="Создать новый проект">
+                    ➕ Добавить
+                </a>
+            </div>
         </div>
         <div class="card-body p-0">
-            <table class="table table-bordered table-hover mb-0">
+            <table class="table table-bordered table-hover mb-0 admin-table" id="projectsTable">
                 <thead class="thead-light">
                     <tr>
                         <th style="width: 5%">№</th>
-                        <th style="width: 27%">Название</th>
-                        <th style="width: 13%">Код</th>
+                        <th style="width: 25%">Название</th>
+                        <th style="width: 12%">Код</th>
                         <th style="width: 12%">Город</th>
                         <th style="width: 20%">Руководитель</th>
                         <th style="width: 12%">Статус</th>
-                        <th style="width: 11%">Действия</th>
+                        <th style="width: 14%">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="project, iterStat : ${projects}">
-                        <td class="text-center" th:text="${iterStat.index + 1}"></td>
-                        <td>
-                            <strong th:text="${project.name}"></strong>
-                        </td>
+                    <tr th:each="project, iter : ${projects}">
+                        <td class="text-center" th:text="${iter.index + 1}"></td>
+                        <td th:text="${project.name}"></td>
                         <td th:text="${project.code != null ? project.code : '—'}"></td>
                         <td th:text="${project.city != null ? project.city : '—'}"></td>
-                        <td>
-                            <span th:text="${project.responsiblePerson != null ? project.responsiblePerson.sername + ' ' + project.responsiblePerson.name : '—'}"></span>
-                        </td>
+                        <td th:text="${project.responsiblePerson != null ? project.responsiblePerson.sername + ' ' + project.responsiblePerson.name : '—'}"></td>
                         <td>
                             <span th:switch="${project.status.name()}">
                                 <span th:case="'PLANNING'" class="badge badge-secondary">Планирование</span>
@@ -128,7 +97,7 @@
                         </td>
                     </tr>
                     <tr th:if="${projects.isEmpty()}">
-                        <td colspan="7" class="text-center text-muted">
+                        <td colspan="7" class="text-center text-muted py-4">
                             Нет созданных проектов
                         </td>
                     </tr>
@@ -153,9 +122,7 @@
 </div>
 
 <script>
-    setTimeout(function() {
-        $('.alert-auto-hide').fadeOut('slow');
-    }, 5000);
+    initTableSearch('searchInput', 'clearSearchBtn', 'projectsTable');
 </script>
 
 </body>

@@ -2,72 +2,100 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head> 
-    <title>Admins</title>
+    <title>Администраторы</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="/css/scrollTable.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <link rel="stylesheet" type="text/css" href="/css/common-tables.css" />
+    <script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
+    <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
+    <script src="/js/table-search.js"></script>
 </head>
 
 <body>
     <header th:insert="blocks/headers :: header-admin-page"></header>
 
     <div class="container mt-4">
-        <h2 class="text-center">Администраторы системы</h2><br>
-       
-        <div class="row">
-            <div class="col-md-2"><a href="/adminpage/person/add?role=ROLE_ADMIN" class="btn btn-success">Добавить</a></div>
-            <div class="col-md-4"></div>
-            <div class="col-md-6">
-                <div class="row">
-                    <input class="form-control" id="inputFilter" type="text" placeholder="Поиск" style="width: 90%;">
-                    <button type="button" class="btn btn-outline-secondary" id="clearButton">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"></path>
-                        </svg>
+        <div class="page-header">
+            <h2 class="text-center">Администраторы системы</h2>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger text-center alert-dismissible fade show alert-auto-hide" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success text-center alert-dismissible fade show alert-auto-hide" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <span><strong>📋 Список администраторов</strong></span>
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="form-control form-control-sm search-input" 
+                           placeholder="🔍 Поиск" data-tooltip="Поиск по любой ячейке">
+                    <button type="button" id="clearSearchBtn" class="btn btn-sm btn-outline-secondary clear-btn" 
+                            data-tooltip="Очистить поиск">
+                        ✖
                     </button>
+                    <a href="/adminpage/person/add?role=ROLE_ADMIN" 
+                       class="btn btn-success btn-sm add-btn"
+                       data-tooltip="Добавить нового администратора">
+                        ➕ Добавить
+                    </a>
                 </div>
             </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered table-hover mb-0 admin-table" id="adminsTable">
+                    <thead class="thead-light">
+                        <tr>
+                            <th style="width: 5%">№</th>
+                            <th style="width: 15%">Фамилия</th>
+                            <th style="width: 12%">Имя</th>
+                            <th style="width: 12%">Отчество</th>
+                            <th style="width: 10%">Пол</th>
+                            <th style="width: 14%">Дата рождения</th>
+                            <th style="width: 22%">Электронная почта</th>
+                            <th style="width: 10%">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="admin, iter : ${admins}">
+                            <td class="text-center" th:text="${iter.index + 1}"></td>
+                            <td th:text="${admin.sername}"></td>
+                            <td th:text="${admin.name}"></td>
+                            <td th:text="${admin.patronymic != null ? admin.patronymic : '—'}"></td>
+                            <td th:text="${admin.gender}"></td>
+                            <td th:text="${admin.birthday}"></td>
+                            <td th:text="${admin.email}"></td>
+                            <td>
+                                <a th:href="@{/adminpage/{role}/{id}/edit(id=${admin.id}, role='admin')}" 
+                                   class="btn btn-primary btn-sm btn-icon"
+                                   data-tooltip="Редактировать администратора">
+                                    ✏️
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${admins.isEmpty()}">
+                            <td colspan="8" class="text-center text-muted py-4">
+                                Нет зарегистрированных администраторов
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <br>
-
-        <div class="scrollable-table">
-            <table class="table table-bordered table-hover myTable">
-                <thead>
-                    <th th:each="h : ${headers}" th:text="${h}"/>
-                </thead>
-                <tbody id="adminsTable">
-                    <tr th:each="admin, iter : ${admins}">
-                        <td class="filterData" th:text="${iter.index}+1"></td>
-                        <td class="filterData" th:text="${admin.sername}"></td>
-                        <td class="filterData" th:text="${admin.name}"></td>
-                        <td class="filterData" th:text="${admin.patronymic}"></td>
-                        <td class="filterData" th:text="${admin.gender}"></td>
-                        <td class="filterData" th:text="${admin.birthday}"></td>
-                        <td class="filterData" th:text="${admin.email}"></td>
-                        <td><a th:href="@{/adminpage/{role}/{id}/edit(id=${admin.id}, role='admin')}">Редактировать</a></td>
-                    </tr>
-                </tbody>
-            </table>  
-        </div>
-        
     </div>
 
-    <script> 
-        $(document).ready(function(){
-          $("#inputFilter").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#adminsTable tr").filter(function() {
-              $(this).toggle($(this).children('.filterData').text().toLowerCase().indexOf(value) > -1)
-            });
-          });
-        });
-
-        document.getElementById("clearButton").onclick = function(e) {
-            document.getElementById("inputFilter").value = "";
-            $("#inputFilter").keyup();
-        }
+    <script>
+        initTableSearch('searchInput', 'clearSearchBtn', 'adminsTable');
     </script>
 
 </body>
