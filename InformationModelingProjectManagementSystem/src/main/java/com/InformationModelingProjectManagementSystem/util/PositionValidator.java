@@ -19,8 +19,8 @@ public class PositionValidator implements Validator {
     }
     
     @Override
-    public boolean supports(Class<?> clazz) {
-        return Position.class.equals(clazz);
+    public boolean supports(Class<?> aClass) {
+        return Position.class.equals(aClass);
     }
     
     @Override

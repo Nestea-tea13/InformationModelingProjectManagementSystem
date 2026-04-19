@@ -19,4 +19,5 @@ public interface PeopleRepository extends CrudRepository<Person, Integer> {
     List<Person> findByPosition(Position position);
     
     List<Person> findAllByOrderBySername();
+
 }

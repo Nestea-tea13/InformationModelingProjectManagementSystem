@@ -15,7 +15,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
 @Entity
-@Table(name = "position")
+@Table(name = "Position")
 public class Position {
     
     @Id
@@ -26,7 +26,7 @@ public class Position {
     @Column(unique = true, nullable = false)
     private String name;
     
-    // КОМУ ЭТА ДОЛЖНОСТЬ МОЖЕТ НАЗНАЧАТЬ ЗАДАЧИ (подчиненные)
+    // Кому может назначать задачи (подчиненные)
     @ManyToMany
     @JoinTable(
         name = "position_subordinates",
@@ -35,43 +35,27 @@ public class Position {
     )
     private List<Position> canAssignTo = new ArrayList<>();
     
-    // КТО МОЖЕТ НАЗНАЧАТЬ ЗАДАЧИ ЭТОЙ ДОЛЖНОСТИ (начальники) - обратная связь
+    // Кто может назначать ему задачи (начальники)
     @ManyToMany(mappedBy = "canAssignTo")
     private List<Position> canBeAssignedBy = new ArrayList<>();
     
     public Position() {}
     
-    public Position(String name) {
-        this.name = name;
-    }
-    
-    public int getId() { 
-        return id; 
-    }
-
-    public void setId(int id) { 
-        this.id = id; 
-    }
-    
-    public String getName() { 
-        return name; 
-    }
-
-    public void setName(String name) { 
+    public Position(String name) { 
         this.name = name; 
     }
-    
-    public List<Position> getCanAssignTo() { 
-        return canAssignTo; 
-    }
 
-    public void setCanAssignTo(List<Position> canAssignTo) { 
-        this.canAssignTo = canAssignTo; 
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     
-    public List<Position> getCanBeAssignedBy() { 
-        return canBeAssignedBy; 
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public List<Position> getCanAssignTo() { return canAssignTo; }
+    public void setCanAssignTo(List<Position> canAssignTo) { this.canAssignTo = canAssignTo; }
+    
+    public List<Position> getCanBeAssignedBy() { return canBeAssignedBy; }
+    public void setCanBeAssignedBy(List<Position> canBeAssignedBy) { this.canBeAssignedBy = canBeAssignedBy; }
     
     // Добавление подчиненного
     public void addSubordinate(Position subordinate) {

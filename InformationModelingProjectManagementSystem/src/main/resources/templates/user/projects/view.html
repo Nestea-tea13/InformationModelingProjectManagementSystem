@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Просмотр проекта</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
+    <style>
+        .info-block {
+            margin-bottom: 1rem;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .member-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .card-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-edit-icon {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<header th:insert="blocks/headers :: header-user-page"></header>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 th:text="${project.name}"></h2>
+        <div>
+            <a href="/projects" class="btn btn-secondary" data-tooltip="Вернуться к списку проектов">
+                ← Назад к проектам
+            </a>
+        </div>
+    </div>
+    
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    
+    <div class="row">
+        <!-- Левая колонка: основная информация -->
+        <div class="col-md-7">
+            <div class="card mb-3">
+                <div class="card-header card-header-actions">
+                    <strong>📋 Основная информация</strong>
+                    <a th:if="${isResponsible}" 
+                       th:href="'/projects/' + ${project.id} + '/edit'" 
+                       class="btn btn-sm btn-outline-primary btn-edit-icon"
+                       data-tooltip="Редактировать основную информацию">
+                        ✏️ Редактировать
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 info-block">
+                            <div class="info-label">Код проекта</div>
+                            <div class="info-value" th:text="${project.code != null ? project.code : '—'}"></div>
+                        </div>
+                        <div class="col-md-6 info-block">
+                            <div class="info-label">Статус</div>
+                            <div class="info-value">
+                                <span th:switch="${project.status.name()}">
+                                    <span th:case="'PLANNING'" class="badge badge-secondary">Планирование</span>
+                                    <span th:case="'ACTIVE'" class="badge badge-primary">Активный</span>
+                                    <span th:case="'SUSPENDED'" class="badge badge-warning">Приостановлен</span>
+                                    <span th:case="'COMPLETED'" class="badge badge-success">Завершен</span>
+                                    <span th:case="'CANCELLED'" class="badge badge-danger">Отменен</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 info-block">
+                            <div class="info-label">Дата начала</div>
+                            <div class="info-value" th:text="${project.startDate != null ? project.startDate : '—'}"></div>
+                        </div>
+                        <div class="col-md-6 info-block">
+                            <div class="info-label">Дата окончания</div>
+                            <div class="info-value" th:text="${project.endDate != null ? project.endDate : '—'}"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-block">
+                        <div class="info-label">Описание</div>
+                        <div class="info-value" th:text="${project.description != null && project.description != '' ? project.description : '—'}"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>📍 Местоположение</strong>
+                </div>
+                <div class="card-body">
+                    <div class="info-block">
+                        <div class="info-label">Город</div>
+                        <div class="info-value" th:text="${project.city != null && project.city != '' ? project.city : '—'}"></div>
+                    </div>
+                    <div class="info-block">
+                        <div class="info-label">Адрес</div>
+                        <div class="info-value" th:text="${project.address != null && project.address != '' ? project.address : '—'}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка: руководитель и участники -->
+        <div class="col-md-5">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong>👤 Руководитель проекта</strong>
+                </div>
+                <div class="card-body">
+                    <div th:if="${project.responsiblePerson != null}">
+                        <div class="info-value">
+                            <span th:text="${project.responsiblePerson.sername + ' ' + project.responsiblePerson.name}"></span>
+                        </div>
+                        <div class="info-label" th:text="${project.responsiblePerson.email}"></div>
+                        <div class="info-label mt-1">
+                            <span th:text="${project.responsiblePerson.position != null ? project.responsiblePerson.position.name : 'Администратор'}"></span>
+                        </div>
+                    </div>
+                    <div th:unless="${project.responsiblePerson != null}" class="text-muted">
+                        Не назначен
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header card-header-actions">
+                    <strong>👥 Участники проекта</strong>
+                    <a th:if="${isResponsible}" 
+                       th:href="'/projects/' + ${project.id} + '/edit-members'" 
+                       class="btn btn-sm btn-outline-primary btn-edit-icon"
+                       data-tooltip="Редактировать состав участников">
+                        ✏️ Редактировать
+                    </a>
+                </div>
+                <div class="card-body member-list">
+                    <!-- Список участников, исключая руководителя -->
+                    <div th:if="${not #lists.isEmpty(project.members)}">
+                        <div th:each="member : ${project.members}" 
+                             th:if="${project.responsiblePerson == null or member.id != project.responsiblePerson.id}"
+                             class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                            <div>
+                                <strong th:text="${member.sername + ' ' + member.name}"></strong>
+                                <br>
+                                <small class="text-muted" th:text="${member.position != null ? member.position.name : 'Администратор'}"></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(project.members) or (project.members.size() == 1 and project.responsiblePerson != null and project.members[0].id == project.responsiblePerson.id)}" 
+                         class="text-center text-muted py-3">
+                        Нет участников проекта
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автоматическое скрытие alert-сообщений через 5 секунд
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            alert.style.display = 'none';
+        });
+    }, 5000);
+</script>
+
+</body>
+</html>
