@@ -1,0 +1,15 @@
+/* Общие стили для форм */
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.radio-group .form-check {
+    margin-right: 1rem;
+}
+
+.form-group.text-center {
+    margin-bottom: 0;
+}

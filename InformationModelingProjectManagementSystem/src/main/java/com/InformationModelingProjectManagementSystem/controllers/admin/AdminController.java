@@ -1,7 +1,6 @@
 package com.InformationModelingProjectManagementSystem.controllers.admin;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.InformationModelingProjectManagementSystem.data.DateBorders;
 import com.InformationModelingProjectManagementSystem.data.Labels;
 import com.InformationModelingProjectManagementSystem.models.Person;
-import com.InformationModelingProjectManagementSystem.models.Position;
 import com.InformationModelingProjectManagementSystem.services.PeopleService;
 import com.InformationModelingProjectManagementSystem.services.PositionService;
 import com.InformationModelingProjectManagementSystem.util.PersonValidator;
@@ -69,9 +67,15 @@ public class AdminController {
 
     @PostMapping("/person/add")
     public String createNewPerson(@ModelAttribute("person") @Valid Person person, 
-                                  BindingResult bindingResult, 
-                                  @RequestParam(value = "positionId", required = false) Integer positionId,
-                                  Model model) {
+                                BindingResult bindingResult, 
+                                @RequestParam(value = "positionId", required = false) Integer positionId,
+                                Model model) {
+
+        if (person.getRole().equals("ROLE_USER") && positionId != null) {
+            positionService.findById(positionId).ifPresent(person::setPosition);
+        } else if (person.getRole().equals("ROLE_ADMIN")) {
+            person.setPosition(null);
+        }
 
         personValidator.validate(person, bindingResult);
         if (bindingResult.hasErrors()) {
@@ -80,19 +84,11 @@ public class AdminController {
             model.addAttribute("allPositions", positionService.findAll());
             return "admin/person-add";
         }
-        
-        if (person.getRole().equals("ROLE_USER") && positionId != null) {
-            Optional<Position> optionalPosition = positionService.findById(positionId);
-            if (optionalPosition.isPresent()) {
-                person.setPosition(optionalPosition.get());
-            }
-        }
-        
+
         peopleService.addPerson(person);
-        
-        if (person.getRole().equals("ROLE_USER")) 
+        if (person.getRole().equals("ROLE_USER"))
             return "redirect:/adminpage/users";
-        else 
+        else
             return "redirect:/adminpage/admins";
     }
 
@@ -110,10 +106,8 @@ public class AdminController {
                                        @PathVariable(value = "id") int id, 
                                        Model model) {
         if(!peopleService.existsPersonById(id) || !Arrays.asList("admin", "user").contains(role)) {
-            if (role.equals("admin"))
-                return "redirect:/adminpage/admins";
-            else 
-                return "redirect:/adminpage/users";
+            if (role.equals("admin")) return "redirect:/adminpage/admins";
+            else return "redirect:/adminpage/users";
         }
 
         Person person = peopleService.findPersonById(id);
@@ -125,11 +119,16 @@ public class AdminController {
     }
 
     @PostMapping({"/user/{id}", "/admin/{id}"})
-    public String userUpdate(@ModelAttribute("person") @Valid Person person, 
-                             BindingResult bindingResult,
-                             @RequestParam(value = "positionId", required = false) Integer positionId,
-                             @PathVariable(value = "id") int id, 
-                             Model model) {
+    public String userUpdate(@ModelAttribute("person") @Valid Person person, BindingResult bindingResult,
+                            @RequestParam(value = "positionId", required = false) Integer positionId,
+                            @PathVariable(value = "id") int id, 
+                            Model model) {
+
+        if (person.getRole().equals("ROLE_USER") && positionId != null) {
+            positionService.findById(positionId).ifPresent(person::setPosition);
+        } else if (person.getRole().equals("ROLE_ADMIN")) {
+            person.setPosition(null);
+        }
 
         personValidator.validate(person, bindingResult);
         if (bindingResult.hasErrors()) {
@@ -138,20 +137,10 @@ public class AdminController {
             model.addAttribute("allPositions", positionService.findAll());
             return "admin/person-edit";
         }
-        
-        if (person.getRole().equals("ROLE_USER") && positionId != null) {
-            Optional<Position> optionalPosition = positionService.findById(positionId);
-            if (optionalPosition.isPresent()) {
-                person.setPosition(optionalPosition.get());
-            }
-        }
-        
+
         peopleService.update(id, person);
-        
-        if (person.getRole().equals("ROLE_USER")) 
-            return "redirect:/adminpage/user/{id}";
-        else 
-            return "redirect:/adminpage/admins";
+        if (person.getRole().equals("ROLE_USER")) return "redirect:/adminpage/user/{id}";
+        else return "redirect:/adminpage/admins";
     }
 
     @PostMapping("/{id}/remove")
