@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
-import com.InformationModelingProjectManagementSystem.models.ProjectStatus;
+import com.InformationModelingProjectManagementSystem.models.enums.ProjectStatus;
 import com.InformationModelingProjectManagementSystem.repositories.ProjectRepository;
 
 @Service

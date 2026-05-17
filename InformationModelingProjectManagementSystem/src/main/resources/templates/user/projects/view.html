@@ -100,11 +100,11 @@
                     <div class="row">
                         <div class="col-md-6 info-block">
                             <div class="info-label">Дата начала</div>
-                            <div class="info-value" th:text="${project.startDate != null ? project.startDate : '—'}"></div>
+                            <div class="info-value" th:text="${project.formattedStartDate}"></div>                     
                         </div>
                         <div class="col-md-6 info-block">
                             <div class="info-label">Дата окончания</div>
-                            <div class="info-value" th:text="${project.endDate != null ? project.endDate : '—'}"></div>
+                            <div class="info-value" th:text="${project.formattedEndDate}"></div>   
                         </div>
                     </div>
                     

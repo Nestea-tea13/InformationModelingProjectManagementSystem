@@ -92,6 +92,18 @@ public class Person {
         return position != null ? position.getName() : "Администратор";
     }
 
+    public String getFormattedBirthday() {
+        if (birthday == null || birthday.isEmpty()) return "—";
+        // Из yyyy-MM-dd в dd.MM.yyyy
+        try {
+            String[] parts = birthday.split("-");
+            if (parts.length == 3) {
+                return parts[2] + "." + parts[1] + "." + parts[0];
+            }
+        } catch (Exception ignored) {}
+        return birthday;
+    }
+
     public String generateRandomPassword() {
         String randomPassword = "";
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
-import com.InformationModelingProjectManagementSystem.models.ProjectStatus;
+import com.InformationModelingProjectManagementSystem.models.enums.ProjectStatus;
 import com.InformationModelingProjectManagementSystem.services.PeopleService;
 import com.InformationModelingProjectManagementSystem.services.ProjectService;
 import com.InformationModelingProjectManagementSystem.util.ProjectValidator;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
-import com.InformationModelingProjectManagementSystem.models.ProjectStatus;
+import com.InformationModelingProjectManagementSystem.models.enums.ProjectStatus;
 
 @Repository
 public interface ProjectRepository extends CrudRepository<Project, Integer> {

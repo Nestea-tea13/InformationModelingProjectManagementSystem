@@ -1,6 +1,7 @@
 package com.InformationModelingProjectManagementSystem.models;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,10 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.InformationModelingProjectManagementSystem.models.enums.ProjectStatus;
 
 @Entity
 @Table(name = "Project")
@@ -42,9 +47,11 @@ public class Project {
     @Column(name = "address")
     private String address;
     
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "start_date")
     private LocalDate startDate;
     
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "end_date")
     private LocalDate endDate;
     
@@ -111,5 +118,13 @@ public class Project {
     
     public String getStatusDisplayName() {
         return status != null ? status.getDisplayName() : "";
+    }
+
+    public String getFormattedStartDate() {
+        return startDate != null ? startDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : "—";
+    }
+
+    public String getFormattedEndDate() {
+        return endDate != null ? endDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) : "—";
     }
 }

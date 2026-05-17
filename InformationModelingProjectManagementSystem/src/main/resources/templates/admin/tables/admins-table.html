@@ -73,7 +73,7 @@
                             <td th:text="${admin.name}"></td>
                             <td th:text="${admin.patronymic != null ? admin.patronymic : '—'}"></td>
                             <td th:text="${admin.gender}"></td>
-                            <td th:text="${admin.birthday}"></td>
+                            <td th:text="${admin.formattedBirthday}"></td>
                             <td th:text="${admin.email}"></td>
                             <td>
                                 <a th:href="@{/adminpage/{role}/{id}/edit(id=${admin.id}, role='admin')}" 

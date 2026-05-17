@@ -60,6 +60,14 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Ошибки для дат -->
+                    <div th:if="${#fields.hasErrors('startDate')}" class="alert alert-danger">
+                        <div th:errors="*{startDate}"></div>
+                    </div>
+                    <div th:if="${#fields.hasErrors('endDate')}" class="alert alert-danger">
+                        <div th:errors="*{endDate}"></div>
+                    </div>
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -93,6 +101,7 @@
                 </form>
             </div>
         </div>
+        <br>
     </div>
 </div>
 

@@ -1,4 +1,4 @@
-package com.InformationModelingProjectManagementSystem.models;
+package com.InformationModelingProjectManagementSystem.models.enums;
 
 public enum ProjectStatus {
     PLANNING("Планирование"),
