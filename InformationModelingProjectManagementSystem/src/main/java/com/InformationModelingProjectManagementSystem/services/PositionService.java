@@ -59,5 +59,10 @@ public class PositionService {
         }
         return canAssignTask(assigner.getPosition(), assignee.getPosition());
     }
+
+    public boolean canAssignTaskByPositionId(int assignerPositionId, int assigneePositionId) {
+        if (assignerPositionId == assigneePositionId) return true;
+        return positionRepository.canAssignByPositionId(assignerPositionId, assigneePositionId);
+    }
     
 }

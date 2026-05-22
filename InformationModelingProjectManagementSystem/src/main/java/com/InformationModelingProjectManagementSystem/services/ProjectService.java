@@ -1,7 +1,10 @@
 package com.InformationModelingProjectManagementSystem.services;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +20,12 @@ import com.InformationModelingProjectManagementSystem.repositories.ProjectReposi
 public class ProjectService {
     
     private final ProjectRepository projectRepository;
+    private final TaskService taskService;
     
     @Autowired
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, TaskService taskService) {
         this.projectRepository = projectRepository;
+        this.taskService = taskService;
     }
     
     public List<Project> findAll() {
@@ -112,6 +117,29 @@ public class ProjectService {
             project.setStatus(newStatus);
             projectRepository.save(project);
         }
+    }
+
+    public List<Project> findProjectsByParticipant(Person person) {
+        Set<Project> uniqueProjects = new HashSet<>();
+        uniqueProjects.addAll(projectRepository.findByResponsiblePerson(person));
+        uniqueProjects.addAll(projectRepository.findByMembersContains(person));
+        return new ArrayList<>(uniqueProjects);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Person> getAvailableAssigneesForProject(int projectId, Person currentUser) {
+        Optional<Project> opt = projectRepository.findById(projectId);
+        if (opt.isEmpty()) return List.of();
+        Project project = opt.get();
+        List<Person> allMembers = project.getMembers();
+        List<Person> result = new ArrayList<>();
+        for (Person member : allMembers) {
+            if (member.getId() == currentUser.getId()) continue;
+            if (taskService.canAssign(currentUser, member)) {
+                result.add(member);
+            }
+        }
+        return result;
     }
     
 }

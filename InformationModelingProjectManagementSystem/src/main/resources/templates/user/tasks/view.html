@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Просмотр задачи</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/forms.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal.css" />
+    <link type="text/css" rel="StyleSheet" href="https://bootstraptema.ru/plugins/2016/remodal/remodal-default-theme.css" />
+    <script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
+    <script src="https://bootstraptema.ru/plugins/2016/remodal/remodal.js"></script>
+</head>
+<body>
+<header th:insert="blocks/headers :: header-user-page"></header>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>📋 Задача: <span th:text="${task.title}"></span></h5>
+                    <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm">← К списку задач</a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Проект</small>
+                            <div class="font-weight-bold" th:text="${project.name}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Статус</small>
+                            <div class="font-weight-bold">
+                                <span th:switch="${task.status.name()}" class="badge"
+                                      th:classappend="${task.status.name() == 'ASSIGNED' ? 'badge-secondary' : 
+                                                      (task.status.name() == 'IN_PROGRESS' ? 'badge-primary' : 
+                                                      (task.status.name() == 'REVIEW' ? 'badge-warning' : 
+                                                      (task.status.name() == 'COMPLETED' ? 'badge-success' : 'badge-danger')))}"
+                                      th:text="${task.status.displayName}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Автор</small>
+                            <div class="font-weight-bold" th:if="${isAssigner}">Вы</div>
+                            <div class="font-weight-bold" th:unless="${isAssigner}" th:text="${task.assigner.sername + ' ' + task.assigner.name}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Исполнитель</small>
+                            <div class="font-weight-bold" th:if="${isAssignee}">Вы</div>
+                            <div class="font-weight-bold" th:unless="${isAssignee}" th:text="${task.assignee.sername + ' ' + task.assignee.name}"></div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Создана</small>
+                            <div class="font-weight-bold" th:text="${#temporals.format(task.createdAt, 'dd.MM.yyyy')}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Срок выполнения</small>
+                            <div class="font-weight-bold" th:classappend="${task.overdue} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Описание</small>
+                        <div class="font-weight-bold" th:text="${task.description != null && task.description != '' ? task.description : '—'}"></div>
+                    </div>
+                    <div th:if="${task.statusComment != null}" class="mb-3">
+                        <small class="text-muted">Комментарий к статусу</small>
+                        <div class="border rounded p-2 bg-warning text-dark" th:text="${task.statusComment}"></div>
+                    </div>
+                    <hr th:if="${task.status.name() != 'REVIEW' and task.status.name() != 'COMPLETED'}">
+
+                    <!-- Кнопки действий в зависимости от статуса и роли -->
+                    <div class="text-center mt-3">
+                        <!-- Исполнитель: статус "Назначено" -->
+                        <div th:if="${isAssignee and task.status.name() == 'ASSIGNED'}">
+                            <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/start'}" method="post" style="display: inline-block;">
+                                <button type="submit" class="btn btn-success">✅ Принять в работу</button>
+                            </form>
+                            <button type="button" class="btn btn-danger ml-2" data-remodal-target="modal-reject">❌ Отклонить</button>
+                        </div>
+                        <!-- Исполнитель: статус "В работе" -->
+                        <div th:if="${isAssignee and task.status.name() == 'IN_PROGRESS'}">
+                            <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/review'}" method="post">
+                                <button type="submit" class="btn btn-warning">📨 Отправить на проверку</button>
+                            </form>
+                        </div>
+                        <!-- Автор: статус "На проверке" -->
+                        <div th:if="${isAssigner and task.status.name() == 'REVIEW'}">
+                            <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/accept'}" method="post" style="display: inline-block;">
+                                <button type="submit" class="btn btn-success">✅ Принято</button>
+                            </form>
+                            <button type="button" class="btn btn-warning ml-2" data-remodal-target="modal-return">↩️ Вернуть в работу</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+</div>
+
+<!-- Модальное окно для отклонения (исполнитель) -->
+<div class="remodal" data-remodal-id="modal-reject">
+    <button data-remodal-action="close" class="remodal-close"></button>
+    <h1>❌ Отклонение задачи</h1>
+    <p>Укажите причину отклонения (необязательно):</p>
+    <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/reject'}" method="post">
+        <div class="form-group">
+            <textarea name="comment" class="form-control" rows="3" placeholder="Причина отклонения..."></textarea>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="remodal-confirm">Отклонить</button>
+            <button data-remodal-action="cancel" class="remodal-cancel">Отмена</button>
+        </div>
+    </form>
+</div>
+
+<!-- Модальное окно для возврата в работу (автор) -->
+<div class="remodal" data-remodal-id="modal-return">
+    <button data-remodal-action="close" class="remodal-close"></button>
+    <h1>↩️ Возврат задачи</h1>
+    <p>Укажите причину возврата (необязательно):</p>
+    <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/return'}" method="post">
+        <div class="form-group">
+            <textarea name="comment" class="form-control" rows="3" placeholder="Что не так, что нужно исправить..."></textarea>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="remodal-confirm">Вернуть в работу</button>
+            <button data-remodal-action="cancel" class="remodal-cancel">Отмена</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

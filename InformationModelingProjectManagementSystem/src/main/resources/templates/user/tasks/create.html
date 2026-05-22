@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Создание задачи</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/forms.css" />
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .step-card {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<header th:insert="blocks/headers :: header-user-page"></header>
+
+<div class="container mt-4">
+    <div class="page-header">
+        <h4 class="text-center">Новая задача</h4>
+    </div><br>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Шаг 1: выбор проекта -->
+            <div class="card step-card">
+                <div class="card-header">
+                    <strong>Шаг 1. Выбор проекта</strong>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="/tasks/create" id="projectForm">
+                        <div class="form-group">
+                            <select name="projectId" class="form-control" onchange="this.form.submit()">
+                                <option value="">— Выберите проект —</option>
+                                <option th:each="p : ${projects}"
+                                        th:value="${p.id}"
+                                        th:text="${p.name}"
+                                        th:selected="${selectedProject != null and selectedProject.id == p.id}"></option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Шаг 2: заполнение задачи (показывается, только если выбран проект) -->
+            <div th:if="${projectSelected}" class="card">
+                <div class="card-header">
+                    <strong>Шаг 2. Детали задачи</strong>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/tasks/create}" method="post" th:object="${task}" id="taskForm">
+                        <input type="hidden" name="projectId" th:value="${selectedProject.id}">
+
+                        <div th:if="${#fields.hasErrors('title')}" class="alert alert-danger">
+                            <div th:errors="*{title}"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Название задачи <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{title}" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Описание</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div th:if="${#fields.hasErrors('assignee')}" class="alert alert-danger">
+                            <div th:errors="*{assignee}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Исполнитель <span class="text-danger">*</span></label>
+                            <select name="assigneeId" class="form-control" id="assigneeSelect"
+                                    th:disabled="${assignToSelf}">
+                                <option value="">— Выберите исполнителя —</option>
+                                <!-- Исключаем текущего пользователя из списка, если не назначено себе -->
+                                <option th:each="member : ${members}"
+                                        th:if="${member.id != currentUserId}"
+                                        th:value="${member.id}"
+                                        th:text="${member.sername + ' ' + member.name + ' (' + member.position.name + ')'}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="assignToSelf" name="assignToSelf"
+                                   th:checked="${assignToSelf}" onclick="toggleAssignee()">
+                            <label class="form-check-label" for="assignToSelf">Назначить задачу самому себе</label>
+                        </div>
+
+                        <div th:if="${#fields.hasErrors('deadline')}" class="alert alert-danger">
+                            <div th:errors="*{deadline}"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Срок выполнения <span class="text-danger">*</span></label>
+                            <input type="date" th:field="*{deadline}" class="form-control" required>
+                        </div>
+
+                        <div class="form-group text-center"> 
+                            <button type="submit" class="btn btn-success">Создать задачу</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:unless="${projectSelected}" class="alert alert-info text-center">
+                <span>Пожалуйста, выберите проект из списка выше, чтобы продолжить</span>
+            </div>
+
+            <div class="form-group text-center"> 
+                <a th:href="@{/projects}" class="btn btn-secondary ml-2">Отмена</a>
+            </div>
+        </div>
+    </div>
+    <br>
+</div>
+
+<script>
+    function toggleAssignee() {
+        const chk = document.getElementById('assignToSelf');
+        const select = document.getElementById('assigneeSelect');
+        if (chk.checked) {
+            select.disabled = true;
+            select.value = '';
+        } else {
+            select.disabled = false;
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleAssignee();
+    });
+</script>
+</body>
+</html>
