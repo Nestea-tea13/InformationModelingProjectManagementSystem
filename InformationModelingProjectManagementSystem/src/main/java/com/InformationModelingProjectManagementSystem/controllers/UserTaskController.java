@@ -78,6 +78,12 @@ public class UserTaskController {
             tasksByStatus.get(task.getStatus().name()).add(task);
         }
 
+        List<Integer> statusCounts = new ArrayList<>();
+        for (TaskStatus status : TaskStatus.values()) {
+            statusCounts.add(tasksByStatus.get(status.name()).size());
+        }
+        model.addAttribute("statusCounts", statusCounts);
+
         model.addAttribute("tasksByStatus", tasksByStatus);
         model.addAttribute("statuses", TaskStatus.values());
         model.addAttribute("selectedProjectId", projectId);
@@ -109,6 +115,12 @@ public class UserTaskController {
         for (Task task : tasks) {
             tasksByStatus.get(task.getStatus().name()).add(task);
         }
+
+        List<Integer> statusCounts = new ArrayList<>();
+        for (TaskStatus status : TaskStatus.values()) {
+            statusCounts.add(tasksByStatus.get(status.name()).size());
+        }
+        model.addAttribute("statusCounts", statusCounts);
 
         model.addAttribute("tasksByStatus", tasksByStatus);
         model.addAttribute("statuses", TaskStatus.values());
