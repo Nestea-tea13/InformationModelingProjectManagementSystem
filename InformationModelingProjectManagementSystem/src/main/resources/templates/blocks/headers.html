@@ -6,25 +6,23 @@
 
 </div>
 
-
 <div th:fragment="header-admin-page">
 
   <nav class="navbar navbar-expand-lg bg-body-tertiary rounded shadow-sm">
     <div class="container-fluid">
       <div class="collapse navbar-collapse d-lg-flex">
-        <a class="navbar-brand col-lg-3 me-0" href="#">Ваш аккаунт</a>
+        <a class="navbar-brand col-lg-3 me-0" href="/adminpage/profile">Ваш профиль</a>
         <ul class="navbar-nav col-lg-6 justify-content-lg-center">
           <li class="nav-item"> <a class="p-2 text-dark" href="/adminpage/projects">Проекты</a> </li>
           <li class="nav-item"> <a class="p-2 text-dark" href="/adminpage/users">Сотрудники</a> </li>
           <li class="nav-item"> <a class="p-2 text-dark" href="/adminpage/admins">Администраторы</a> </li>
           <li class="nav-item"> <a class="p-2 text-dark" href="/adminpage/positions">Должности</a> </li>
-          <li class="nav-item"> <a class="p-2 text-dark" href="/adminpage/profile">Ваш профиль</a> </li>
         </ul>
-  
+
         <form class="d-lg-flex col-lg-3 justify-content-lg-end" th:action="@{/logout}" th:method="POST">
           <input class="btn btn-primary" type="submit" value="Выход"/>
         </form>
-  
+
       </div>
     </div>
   </nav>
@@ -37,25 +35,24 @@
   <nav class="navbar navbar-expand-lg bg-body-tertiary rounded shadow-sm">
     <div class="container-fluid">
       <div class="collapse navbar-collapse d-lg-flex">
-        <a class="navbar-brand col-lg-3 me-0" href="#">Ваш аккаунт</a>
+        <a class="navbar-brand col-lg-3 me-0" href="/profile">Ваш профиль</a>
         <ul class="navbar-nav col-lg-6 justify-content-lg-center">
           <li class="nav-item dropdown">
-              <a class="p-2 text-dark dropdown-toggle" href="#" id="tasksDropdown" role="button" data-toggle="dropdown" aria-expanded="false">
-                  Задачи
-              </a>
-              <div class="dropdown-menu" aria-labelledby="tasksDropdown">
-                  <a class="dropdown-item" href="/tasks/for-me">Мне</a>
-                  <a class="dropdown-item" href="/tasks/by-me">От меня</a>
-              </div>
+            <a class="p-2 text-dark dropdown-toggle" href="#" id="tasksDropdown" role="button" data-toggle="dropdown" aria-expanded="false">
+              Задачи
+            </a>
+            <div class="dropdown-menu" aria-labelledby="tasksDropdown">
+              <a class="dropdown-item" href="/tasks/for-me">Мне</a>
+              <a class="dropdown-item" href="/tasks/by-me">От меня</a>
+            </div>
           </li>
           <li class="nav-item"> <a class="p-2 text-dark" href="/projects">Проекты</a> </li>
-          <li class="nav-item"> <a class="p-2 text-dark" href="/profile">Ваш профиль</a> </li>
         </ul>
-  
+
         <form class="d-lg-flex col-lg-3 justify-content-lg-end" th:action="@{/logout}" th:method="POST">
           <input class="btn btn-primary" type="submit" value="Выход"/>
         </form>
-  
+        
       </div>
     </div>
   </nav>
