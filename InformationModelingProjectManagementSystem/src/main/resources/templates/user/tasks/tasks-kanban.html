@@ -162,7 +162,8 @@
                                 <div th:if="${showExecutor}" class="task-project">
                                     <span th:text="'Исполнитель: ' + ${task.assignee.sername + ' ' + task.assignee.name}"></span>
                                 </div>
-                                <div class="task-deadline" th:classappend="${task.overdue} ? 'deadline-urgent' : ''">
+                                <div class="task-deadline" 
+                                    th:classappend="${task.overdue and task.status.name() != 'COMPLETED' and task.status.name() != 'REJECTED'} ? 'deadline-urgent' : ''">
                                     <span th:text="'Срок: ' + ${task.formattedDeadline}"></span>
                                 </div>
                             </div>
@@ -173,13 +174,34 @@
         </div>
     </div>
 
-    <div class="card">
+    <div th:if="${#aggregates.sum(statusCounts) > 0}" class="card">
         <div class="card-header">
             <h4 class="mb-0 text-center">📊 Статистика задач</h4>
         </div>
         <div class="card-body">
-            <div class="chart-container text-center" style="margin: 0 auto;">
-                <canvas id="tasksChart"  style="max-width: auto; max-height: 300px;"></canvas>
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="chart-container text-center" style="margin: 0 auto; height: 300px;">
+                    <canvas id="tasksChart" style="max-height: 100%; width: auto;"></canvas>
+                </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light border-0">
+                        <div class="card-body p-3">
+                            <div class="text-center mb-2">
+                                <label class="font-weight-bold">Тип диаграммы</label>
+                            </div>
+                            <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active flex-fill">
+                                    <input type="radio" name="chartType" value="pie" checked autocomplete="off"> Круговая
+                                </label>
+                                <label class="btn btn-outline-primary flex-fill">
+                                    <input type="radio" name="chartType" value="bar" autocomplete="off"> Столбчатая
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -195,31 +217,73 @@
     var ctx = document.querySelector('#tasksChart').getContext('2d');
     /*<![CDATA[*/ var statusCounts = /*[[ ${statusCounts} ]]*/ [] /*]]*/;
     
-    var tasksChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Назначено', 'В работе', 'На проверке', 'Выполнено', 'Отклонено'],
-            datasets: [
-                {
-                    label: 'Количество задач: ',
-                    data: statusCounts,
-                    backgroundColor:  [
-                        '#6c757d', // ASSIGNED
-                        '#007bff', // IN_PROGRESS
-                        '#ffc107', // REVIEW
-                        '#28a745', // COMPLETED
-                        '#dc3545'  // REJECTED
-                    ],
-                    hoverOffset: 5
-                }
-            ]
+    var chartData = {
+        labels: ['Назначено', 'В работе', 'На проверке', 'Выполнено', 'Отклонено'],
+        datasets: [{
+            label: 'Количество задач: ',
+            data: statusCounts,
+            backgroundColor: ['#6c757d', '#007bff', '#ffc107', '#28a745', '#dc3545'],
+            hoverOffset: 5
+        }]
+    };
+
+    var pieChartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'right' }
+        }
+    };
+
+    var barChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
         },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'right' }
+        scales: {
+            y: {
+                ticks: {
+                    stepSize: 1,
+                    precision: 0
+                },
+                title: {
+                    display: true,
+                    text: 'Количество задач'
+                }
             }
-        } 
+        }
+    };
+
+    var tasksChart;
+
+    function createChart(type) {
+        if (tasksChart) {
+            tasksChart.destroy();
+        }
+        if (type == 'pie') {
+            tasksChart = new Chart(ctx, {
+                type: type,
+                data: chartData,
+                options: pieChartOptions
+            });
+        } else {
+            tasksChart = new Chart(ctx, {
+                type: type,
+                data: chartData,
+                options: barChartOptions
+            });
+        }
+    }
+
+    createChart('pie');
+
+    document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                createChart(this.value);
+            }
+        });
     });
 </script>
 

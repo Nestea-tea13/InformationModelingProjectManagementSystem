@@ -57,7 +57,7 @@
                         </div>
                         <div class="col-md-6">
                             <small class="text-muted">Срок выполнения</small>
-                            <div class="font-weight-bold" th:classappend="${task.overdue} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
+                            <div class="font-weight-bold" th:classappend="${task.overdue and task.status.name() != 'COMPLETED' and task.status.name() != 'REJECTED'} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
                         </div>
                     </div>
                     <div class="mb-3">
