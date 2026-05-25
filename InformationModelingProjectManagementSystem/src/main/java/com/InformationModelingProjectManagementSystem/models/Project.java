@@ -70,6 +70,10 @@ public class Project {
         inverseJoinColumns = @JoinColumn(name = "person_id")
     )
     private List<Person> members = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
     
     public Project() {}
     
@@ -105,6 +109,9 @@ public class Project {
     
     public List<Person> getMembers() { return members; }
     public void setMembers(List<Person> members) { this.members = members; }
+
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
     
     public void addMember(Person person) {
         if (!members.contains(person)) {

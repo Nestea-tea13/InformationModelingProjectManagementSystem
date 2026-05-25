@@ -130,6 +130,43 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-3">
+                <div class="card-header card-header-actions">
+                    <strong>Заказчик</strong>
+                    <a th:if="${isResponsible}" 
+                       th:href="'/projects/' + ${project.id} + '/edit-customer'" 
+                       class="btn btn-sm btn-outline-primary btn-edit-icon"
+                       data-tooltip="Редактировать информацию о заказчике">
+                        ✏️ Редактировать
+                    </a>
+                </div>
+                <div class="card-body" th:with="customer=${project.customer}">
+                    <div th:if="${customer != null}">
+                        <div class="info-block">
+                            <div class="info-label">Название организации</div>
+                            <div class="info-value" th:text="${customer.name}"></div>
+                        </div>
+                        <div class="info-block">
+                            <div class="info-label">Представитель</div>
+                            <div class="info-value" th:text="${customer.representative != null && customer.representative != '' ? customer.representative : '—'}"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 info-block">
+                                <div class="info-label">Почта</div>
+                                <div class="info-value" th:text="${customer.email != null ? customer.email : '—'}"></div>
+                            </div>
+                            <div class="col-md-6 info-block">
+                                <div class="info-label">Телефон</div>
+                                <div class="info-value" th:text="${customer.phone != null ? customer.phone : '—'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${customer != null}" class="text-muted text-center">
+                        Информация о заказчике не добавлена
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Правая колонка: руководитель и участники -->

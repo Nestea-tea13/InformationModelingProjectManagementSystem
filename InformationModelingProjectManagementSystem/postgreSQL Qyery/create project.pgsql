@@ -10,7 +10,9 @@ CREATE TABLE Project (
     end_date DATE,
     status VARCHAR(20),
     responsible_person_id INT,
-    FOREIGN KEY (responsible_person_id) REFERENCES Person(id) ON DELETE SET NULL
+    customer_id INT,
+    FOREIGN KEY (responsible_person_id) REFERENCES Person(id) ON DELETE SET NULL,
+    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE SET NULL
 );
 
 -- Связующая таблица участников проекта

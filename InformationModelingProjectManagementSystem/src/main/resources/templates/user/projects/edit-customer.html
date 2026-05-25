@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Редактирование заказчика</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/forms.css" />
+</head>
+<body>
+<header th:insert="blocks/headers :: header-user-page"></header>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>✏️ Редактирование информации о заказчике</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="'/projects/' + ${project.id} + '/edit-customer'" method="post" th:object="${customer}">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="form-group">
+                            <label>Заказчик <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{name}" class="form-control" required>
+                        </div>
+                        <div th:if="${#fields.hasErrors('name')}" class="alert alert-danger">
+                            <div th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Представитель</label>
+                            <input type="text" th:field="*{representative}" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Почта</label>
+                            <input type="email" th:field="*{email}" class="form-control">
+                        </div>
+                        <div th:if="${#fields.hasErrors('email')}" class="alert alert-danger">
+                            <div th:errors="*{email}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" th:field="*{phone}" class="form-control"
+                                oninput="phoneMask(this)" 
+                                placeholder="+7 (999) 123-45-67 или 8 (999) 123-45-67">
+                        </div>
+                        <div th:if="${#fields.hasErrors('phone')}" class="alert alert-danger">
+                            <div th:errors="*{phone}"></div>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-success">Сохранить</button>
+                            <a th:href="'/projects/' + ${project.id}" class="btn btn-secondary ml-2">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <br>
+        </div>
+    </div>
+</div>
+
+<script>
+    function phoneMask(input) {
+        let numbers = input.value.replace(/\D/g, '');
+        if (numbers.length === 0) {
+            input.value = '';   // очищаем поле, если нет цифр
+            return;
+        }
+        let firstChar = numbers[0];
+        let formatted = '';
+        if (firstChar === '8') {
+            formatted = '8';
+            if (numbers.length > 1) formatted += ' (' + numbers.slice(1, 4);
+            if (numbers.length >= 5) formatted += ') ' + numbers.slice(4, 7);
+            if (numbers.length >= 8) formatted += '-' + numbers.slice(7, 9);
+            if (numbers.length >= 10) formatted += '-' + numbers.slice(9, 11);
+        } else if (firstChar === '7') {
+            formatted = '+7';
+            if (numbers.length > 1) formatted += ' (' + numbers.slice(1, 4);
+            if (numbers.length >= 5) formatted += ') ' + numbers.slice(4, 7);
+            if (numbers.length >= 8) formatted += '-' + numbers.slice(7, 9);
+            if (numbers.length >= 10) formatted += '-' + numbers.slice(9, 11);
+        } else {
+            formatted = numbers;
+        }
+        input.value = formatted;
+    }
+</script>
+
+</body>
+</html>

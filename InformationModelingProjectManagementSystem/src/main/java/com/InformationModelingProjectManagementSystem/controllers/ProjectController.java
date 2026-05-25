@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.InformationModelingProjectManagementSystem.models.Customer;
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
 import com.InformationModelingProjectManagementSystem.models.enums.ProjectStatus;
+import com.InformationModelingProjectManagementSystem.services.CustomerService;
 import com.InformationModelingProjectManagementSystem.services.PeopleService;
 import com.InformationModelingProjectManagementSystem.services.ProjectService;
+import com.InformationModelingProjectManagementSystem.util.CustomerValidator;
 import com.InformationModelingProjectManagementSystem.util.ProjectValidator;
 
 @Controller
@@ -31,15 +34,21 @@ public class ProjectController {
     
     private final ProjectService projectService;
     private final PeopleService peopleService;
+        private final CustomerService customerService;
     private final ProjectValidator projectValidator;
+    private final CustomerValidator customerValidator;
     
     @Autowired
     public ProjectController(ProjectService projectService, 
                              PeopleService peopleService,
-                             ProjectValidator projectValidator) {
+                             CustomerService customerService,
+                             ProjectValidator projectValidator,
+                             CustomerValidator customerValidator) {
         this.projectService = projectService;
         this.peopleService = peopleService;
+        this.customerService = customerService;
         this.projectValidator = projectValidator;
+        this.customerValidator = customerValidator;
     }
     
     // Список проектов
@@ -239,4 +248,81 @@ public class ProjectController {
         
         return "redirect:/projects/" + id;
     }
+
+   
+    @GetMapping("/{id}/edit-customer")
+    public String editCustomerForm(@PathVariable int id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Project> optionalProject = projectService.findById(id);
+        Person currentUser = peopleService.getCurrentPerson();
+        if (optionalProject.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Проект не найден");
+            return "redirect:/projects";
+        }
+        Project project = optionalProject.get();
+        if (!projectService.isResponsible(id, currentUser)) {
+            redirectAttributes.addFlashAttribute("error", "У вас нет прав на редактирование информации о заказчике");
+            return "redirect:/projects/" + id;
+        }
+
+        // Подготовка объекта Customer для формы
+        Customer customer = project.getCustomer() != null ? project.getCustomer() : new Customer();
+        model.addAttribute("customer", customer);
+        model.addAttribute("project", project);
+        return "user/projects/edit-customer";
+    }
+
+    @PostMapping("/{id}/edit-customer")
+    public String updateCustomer(@PathVariable int id,
+                                @ModelAttribute("customer") @Valid Customer customer,
+                                BindingResult bindingResult,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
+        
+        Optional<Project> optionalProject = projectService.findById(id);
+        Person currentUser = peopleService.getCurrentPerson();
+        if (optionalProject.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Проект не найден");
+            return "redirect:/projects";
+        }
+        Project project = optionalProject.get();
+        if (!projectService.isResponsible(id, currentUser)) {
+            redirectAttributes.addFlashAttribute("error", "У вас нет прав на редактирование информации о заказчике");
+            return "redirect:/projects/" + id;
+        }
+
+        if (customer.getEmail().trim().isEmpty()) { customer.setEmail(null); }
+        if (customer.getPhone().trim().isEmpty()) { customer.setPhone(null); }
+
+        customerValidator.validate(customer, bindingResult);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("customer", customer);
+            model.addAttribute("project", project);
+            return "user/projects/edit-customer";
+        }
+
+        // Сохраняем или обновляем заказчика
+        Customer savedCustomer;
+        if (customer.getId() > 0) {
+            // Обновляем существующего
+            Optional<Customer> existing = customerService.findById(customer.getId());
+            if (existing.isPresent()) {
+                savedCustomer = existing.get();
+                savedCustomer.setName(customer.getName().trim());
+                savedCustomer.setRepresentative(customer.getRepresentative());
+                savedCustomer.setEmail(customer.getEmail());
+                savedCustomer.setPhone(customer.getPhone());
+            } else {
+                savedCustomer = customer;
+            }
+        } else {
+            savedCustomer = customer;
+        }
+        customerService.save(savedCustomer);
+        project.setCustomer(savedCustomer);
+        projectService.save(project);
+
+        redirectAttributes.addFlashAttribute("success", "Информация о заказчике обновлена");
+        return "redirect:/projects/" + id;
+    }
+
 }
