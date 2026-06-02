@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import com.InformationModelingProjectManagementSystem.models.Discipline;
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
 import com.InformationModelingProjectManagementSystem.models.Task;
@@ -28,5 +29,7 @@ public interface TaskRepository extends CrudRepository<Task, Integer> {
     List<Task> findByProjectAndAssignee(Project project, Person assignee);
 
     List<Task> findByAssignerAndProject(Person assigner, Project project);
+
+    List<Task> findByDiscipline(Discipline discipline);
 
 }

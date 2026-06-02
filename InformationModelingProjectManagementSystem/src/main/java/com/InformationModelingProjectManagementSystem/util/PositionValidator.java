@@ -24,8 +24,8 @@ public class PositionValidator implements Validator {
     }
     
     @Override
-    public void validate(Object target, Errors errors) {
-        Position position = (Position) target;
+    public void validate(Object o, Errors errors) {
+        Position position = (Position) o;
         
         positionService.findByName(position.getName())
             .ifPresent(existingPosition -> {

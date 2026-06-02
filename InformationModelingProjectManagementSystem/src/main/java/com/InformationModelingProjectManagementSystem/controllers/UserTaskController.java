@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.InformationModelingProjectManagementSystem.models.Discipline;
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
 import com.InformationModelingProjectManagementSystem.models.Task;
 import com.InformationModelingProjectManagementSystem.models.enums.TaskStatus;
+import com.InformationModelingProjectManagementSystem.services.DisciplineService;
 import com.InformationModelingProjectManagementSystem.services.PeopleService;
 import com.InformationModelingProjectManagementSystem.services.ProjectService;
 import com.InformationModelingProjectManagementSystem.services.TaskService;
@@ -35,14 +37,17 @@ public class UserTaskController {
     private final TaskService taskService;
     private final ProjectService projectService;
     private final PeopleService peopleService;
+    private final DisciplineService disciplineService;
     private final TaskValidator taskValidator;
 
     @Autowired
     public UserTaskController(TaskService taskService, ProjectService projectService,
-                            PeopleService peopleService, TaskValidator taskValidator) {
+                            PeopleService peopleService, DisciplineService disciplineService, 
+                            TaskValidator taskValidator) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.peopleService = peopleService;
+        this.disciplineService = disciplineService;
         this.taskValidator = taskValidator;
     }
 
@@ -151,6 +156,7 @@ public class UserTaskController {
         } else {
             model.addAttribute("projectSelected", false);
         }
+        model.addAttribute("disciplines", disciplineService.findAllVisible());
         model.addAttribute("task", new Task());
         return "user/tasks/create";
     }
@@ -161,6 +167,7 @@ public class UserTaskController {
                             @RequestParam("projectId") int projectId,
                             @RequestParam(value = "assigneeId", required = false) Integer assigneeId,
                             @RequestParam(value = "assignToSelf", required = false) boolean assignToSelf,
+                            @RequestParam(value = "disciplineId", required = false) Integer disciplineId,
                             Model model,
                             RedirectAttributes redirectAttributes) {
         Person currentUser = peopleService.getCurrentPerson();
@@ -197,6 +204,13 @@ public class UserTaskController {
             bindingResult.rejectValue("assignee", "", "Вы не можете назначать задачи этому сотруднику (нарушение иерархии)");
         }
         task.setAssignee(assignee);
+
+         if (disciplineId != null && disciplineId > 0) {
+            Optional<Discipline> optionalDiscipline = disciplineService.findById(disciplineId);
+            if (optionalDiscipline.isPresent()) {
+                task.setDiscipline(optionalDiscipline.get());
+            }
+        }
         
         taskValidator.validate(task, bindingResult);
         

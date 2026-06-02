@@ -78,9 +78,7 @@ public class AdminProjectController {
             project.setResponsiblePerson(responsiblePerson);
         }
 
-        if (project.getStatus() == null) {
-            project.setStatus(ProjectStatus.PLANNING);
-        }
+        project.setStatus(ProjectStatus.PLANNING);
 
         if (responsiblePerson != null) {
             project.addMember(responsiblePerson);
@@ -165,4 +163,5 @@ public class AdminProjectController {
 
         return "redirect:/adminpage/projects";
     }
+
 }

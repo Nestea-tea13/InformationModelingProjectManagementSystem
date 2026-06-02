@@ -63,6 +63,10 @@ public class Task {
     @Column(name = "status_comment", length = 500)
     private String statusComment;
 
+    @ManyToOne
+    @JoinColumn(name = "discipline_id")
+    private Discipline discipline;
+
     public Task() {
         this.createdAt = LocalDate.now();
         this.status = TaskStatus.ASSIGNED;
@@ -98,6 +102,9 @@ public class Task {
     public String getStatusComment() { return statusComment; }
     public void setStatusComment(String statusComment) { this.statusComment = statusComment; }
 
+    public Discipline getDiscipline() { return discipline; }
+    public void setDiscipline(Discipline discipline) { this.discipline = discipline; }
+
     public String getStatusDisplayName() {
         return status != null ? status.getDisplayName() : "";
     }
@@ -108,6 +115,14 @@ public class Task {
 
     public boolean isOverdue() {
         return deadline != null && deadline.isBefore(LocalDate.now());
+    }
+
+    public String getDisciplineFullName() {
+        return discipline != null ? discipline.getFullName() : "—";
+    }
+
+    public String getDisciplineShortName() {
+        return discipline != null ? discipline.getShortName() : "—";
     }
     
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.InformationModelingProjectManagementSystem.models.Discipline;
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Position;
 import com.InformationModelingProjectManagementSystem.models.Project;
@@ -77,6 +78,19 @@ public class TaskService {
 
     public List<Task> findByAssignerAndProject(Person assigner, Project project) {
         return taskRepository.findByAssignerAndProject(assigner, project);
+    }
+
+    public List<Task> findByDiscipline(Discipline discipline) {
+        return taskRepository.findByDiscipline(discipline);
+    }
+
+    @Transactional
+    public void replaceDiscipline(Discipline oldDiscipline, Discipline newDiscipline) {
+        List<Task> tasks = taskRepository.findByDiscipline(oldDiscipline);
+        for (Task task : tasks) {
+            task.setDiscipline(newDiscipline);
+            taskRepository.save(task);
+        }
     }
     
 }

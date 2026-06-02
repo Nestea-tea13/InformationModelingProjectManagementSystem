@@ -60,6 +60,17 @@
                             <input type="text" th:field="*{title}" class="form-control" required>
                         </div>
 
+                        <div th:if="${#fields.hasErrors('discipline')}" class="alert alert-danger">
+                            <div th:errors="*{discipline}"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Раздел модели</label>
+                            <select name="disciplineId" class="form-control">
+                                <option value="">— Не назначен —</option>
+                                <option th:each="d : ${disciplines}" th:value="${d.id}" th:text="${d.fullName}"></option>
+                            </select>
+                        </div>
+
                         <div class="form-group">
                             <label>Описание</label>
                             <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
@@ -105,7 +116,7 @@
 
             <div th:unless="${projectSelected}" class="alert alert-info text-center">
                 <span>Пожалуйста, выберите проект из списка выше, чтобы продолжить</span>
-            </div>
+            </div><br>
 
             <div class="form-group text-center"> 
                 <a th:href="@{/projects}" class="btn btn-secondary ml-2">Отмена</a>

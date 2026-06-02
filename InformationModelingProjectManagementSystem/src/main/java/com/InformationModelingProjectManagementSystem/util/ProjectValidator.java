@@ -24,8 +24,8 @@ public class ProjectValidator implements Validator {
     }
     
     @Override
-    public void validate(Object target, Errors errors) {
-        Project project = (Project) target;
+    public void validate(Object o, Errors errors) {
+        Project project = (Project) o;
         
         // Проверка уникальности кода проекта
         if (project.getCode() != null && !project.getCode().isEmpty()) {

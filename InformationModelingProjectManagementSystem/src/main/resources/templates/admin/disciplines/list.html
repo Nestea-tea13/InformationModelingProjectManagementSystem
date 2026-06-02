@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Разделы модели</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/common-tables.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<header th:insert="blocks/headers :: header-admin-page"></header>
+
+<div class="container mt-4" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>Разделы информационной модели</h3>
+        <div>
+            <a href="/adminpage/disciplines/sort" class="btn btn-secondary mr-2">🔁 Настройка очередности</a>
+            <a href="/adminpage/disciplines/create" class="btn btn-success">➕ Добавить</a>
+        </div>
+    </div>
+    <div th:if="${success}" class="alert alert-success mt-3" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+
+    <div class="card mt-3">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width: 7%">№</th>
+                        <th style="width: 18%">Сокращение</th>
+                        <th style="width: 49%">Полное название</th>
+                        <th style="width: 11%">Видимость</th>
+                        <th style="width: 15%">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="d, iter : ${disciplines}">
+                        <td th:text="${iter.index + 1}"></td>
+                        <td th:text="${d.shortName}"></td>
+                        <td th:text="${d.fullName}"></td>
+                        <td>
+                            <form th:action="@{'/adminpage/disciplines/' + ${d.id} + '/toggle-visible'}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm" th:classappend="${d.visible} ? 'btn-success' : 'btn-secondary'"
+                                        th:text="${d.visible} ? 'Да' : 'Нет'"></button>
+                            </form>
+                        </td>
+                        <td>
+                            <a th:href="@{'/adminpage/disciplines/' + ${d.id} + '/edit'}" class="btn btn-sm btn-primary">✏️</a>
+                            <form th:action="@{'/adminpage/disciplines/' + ${d.id} + '/delete'}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Удалить раздел?')">
+                                <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br>
+</div>
+</body>
+</html>

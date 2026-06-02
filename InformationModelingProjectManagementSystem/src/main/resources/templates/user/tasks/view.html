@@ -21,6 +21,7 @@
                     <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm">← К списку задач</a>
                 </div>
                 <div class="card-body">
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <small class="text-muted">Проект</small>
@@ -38,6 +39,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <small class="text-muted">Автор</small>
@@ -50,6 +52,7 @@
                             <div class="font-weight-bold" th:unless="${isAssignee}" th:text="${task.assignee.sername + ' ' + task.assignee.name}"></div>
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <small class="text-muted">Создана</small>
@@ -60,10 +63,21 @@
                             <div class="font-weight-bold" th:classappend="${task.overdue and task.status.name() != 'COMPLETED' and task.status.name() != 'REJECTED'} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Раздел ИМ</small>
+                        <div class="font-weight-bold">
+                            <span th:if="${task.discipline != null}" data-toggle="tooltip" 
+                                th:title="${task.discipline.fullName}" th:text="${task.discipline.shortName}"></span>
+                            <span th:unless="${task.discipline != null}">—</span>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <small class="text-muted">Описание</small>
                         <div class="font-weight-bold" th:text="${task.description != null && task.description != '' ? task.description : '—'}"></div>
                     </div>
+
                     <div th:if="${task.statusComment != null}" class="mb-3">
                         <small class="text-muted">Комментарий к статусу</small>
                         <div class="border rounded p-2 bg-warning text-dark" th:text="${task.statusComment}"></div>
@@ -99,6 +113,12 @@
     </div>
     <br>
 </div>
+
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 
 <!-- Модальное окно для отклонения (исполнитель) -->
 <div class="remodal" data-remodal-id="modal-reject">
