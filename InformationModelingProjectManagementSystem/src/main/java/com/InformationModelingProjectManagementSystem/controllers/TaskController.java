@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.InformationModelingProjectManagementSystem.models.Person;
 import com.InformationModelingProjectManagementSystem.models.Project;
 import com.InformationModelingProjectManagementSystem.models.Task;
 import com.InformationModelingProjectManagementSystem.models.enums.TaskStatus;
+import com.InformationModelingProjectManagementSystem.services.DocumentService;
 import com.InformationModelingProjectManagementSystem.services.PeopleService;
 import com.InformationModelingProjectManagementSystem.services.ProjectService;
 import com.InformationModelingProjectManagementSystem.services.TaskService;
@@ -27,12 +29,15 @@ public class TaskController {
     private final TaskService taskService;
     private final ProjectService projectService;
     private final PeopleService peopleService;
+    private final DocumentService documentService;
 
     @Autowired
-    public TaskController(TaskService taskService, ProjectService projectService, PeopleService peopleService) {
+    public TaskController(TaskService taskService, ProjectService projectService, 
+                          PeopleService peopleService, DocumentService documentService) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.peopleService = peopleService;
+        this.documentService = documentService;
     }
 
     // Просмотр задачи
@@ -56,6 +61,7 @@ public class TaskController {
         model.addAttribute("task", task);
         model.addAttribute("isAssignee", isAssignee);
         model.addAttribute("isAssigner", isAssigner);
+        model.addAttribute("documents", documentService.findByTask(task));
         return "user/tasks/view";
     }
 
@@ -140,6 +146,7 @@ public class TaskController {
         }
         task.setStatus(TaskStatus.COMPLETED);
         taskService.save(task);
+        documentService.approveTaskDocuments(task);
         redirectAttributes.addFlashAttribute("success", "Задача выполнена");
         return "redirect:/projects/" + projectId + "/tasks/" + taskId;
     }
@@ -166,6 +173,69 @@ public class TaskController {
         }
         taskService.save(task);
         redirectAttributes.addFlashAttribute("success", "Задача возвращена в работу" + (comment != null ? " с комментарием: " + comment : ""));
+        return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+    }
+
+    // Загрузка файлов к задаче (только исполнитель, статус IN_PROGRESS)
+    @PostMapping("/{taskId}/upload")
+    public String uploadFiles(@PathVariable int projectId,
+                              @PathVariable int taskId,
+                              @RequestParam(value = "files", required = false) MultipartFile[] files,
+                              RedirectAttributes redirectAttributes) {
+        Optional<Task> taskOpt = taskService.findById(taskId);
+        if (taskOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Задача не найдена");
+            return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+        }
+        Task task = taskOpt.get();
+        Person currentUser = peopleService.getCurrentPerson();
+
+        if (currentUser.getId() != task.getAssignee().getId()) {
+            redirectAttributes.addFlashAttribute("error", "Только исполнитель может загружать файлы");
+            return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+        }
+        if (task.getStatus() != TaskStatus.IN_PROGRESS) {
+            redirectAttributes.addFlashAttribute("error", "Файлы можно загружать только когда задача в работе");
+            return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+        }
+
+        if (files != null) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    try {
+                        documentService.uploadTaskFile(task, file, currentUser);
+                    } catch (Exception e) {
+                        redirectAttributes.addFlashAttribute("error", "Ошибка загрузки файла: " + file.getOriginalFilename());
+                        return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+                    }
+                }
+            }
+            redirectAttributes.addFlashAttribute("success", "Файлы успешно загружены");
+        } else {
+            redirectAttributes.addFlashAttribute("info", "Файлы не выбраны");
+        }
+        return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+    }
+
+    @PostMapping("/{taskId}/delete-file/{documentId}")
+    public String deleteFile(@PathVariable int projectId,
+                            @PathVariable int taskId,
+                            @PathVariable int documentId,
+                            RedirectAttributes redirectAttributes) {
+        Optional<Task> taskOpt = taskService.findById(taskId);
+        if (taskOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Задача не найдена");
+            return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+        }
+        Task task = taskOpt.get();
+        Person currentUser = peopleService.getCurrentPerson();
+
+        try {
+            documentService.deleteDocument(documentId, currentUser, task);
+            redirectAttributes.addFlashAttribute("success", "Файл удалён");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/projects/" + projectId + "/tasks/" + taskId;
     }
     

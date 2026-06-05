@@ -191,17 +191,19 @@ public class UserTaskController {
         Person assignee = null;
         if (assignToSelf) {
             assignee = currentUser;
-        } else if (assigneeId != null) {
-            assignee = peopleService.findPersonById(assigneeId);
-            if (assignee == null) {
-                bindingResult.rejectValue("assignee", "", "Исполнитель не найден");
-            }
         } else {
-            bindingResult.rejectValue("assignee", "", "Выберите исполнителя");
-        }
-        
-        if (assignee != null && !taskService.canAssign(currentUser, assignee)) {
-            bindingResult.rejectValue("assignee", "", "Вы не можете назначать задачи этому сотруднику (нарушение иерархии)");
+            if (assigneeId == null) {
+                bindingResult.rejectValue("assignee", "", "Выберите исполнителя");
+            } else {
+                assignee = peopleService.findPersonById(assigneeId);
+                if (assignee == null) {
+                    bindingResult.rejectValue("assignee", "", "Исполнитель не найден");
+                }
+            }
+            // Проверка прав только для случая, когда пользователь назначает не себе
+            if (assignee != null && !taskService.canAssign(currentUser, assignee)) {
+                bindingResult.rejectValue("assignee", "", "Вы не можете назначать задачи этому сотруднику (нарушение иерархии)");
+            }
         }
         task.setAssignee(assignee);
 
@@ -226,7 +228,7 @@ public class UserTaskController {
         task.setStatus(TaskStatus.ASSIGNED);
         taskService.save(task);
         redirectAttributes.addFlashAttribute("success", "Задача \"" + task.getTitle() + "\" создана!");
-        return "redirect:/tasks";
+        return "redirect:/projects/" + projectId + "/tasks/" + task.getId();
     }
 
     @GetMapping("/list")

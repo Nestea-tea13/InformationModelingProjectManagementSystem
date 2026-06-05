@@ -37,7 +37,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         // Настройка авторизации и обработка формы входа
-        http.authorizeRequests(requests -> requests
+        http
+            .headers().frameOptions().sameOrigin().and()
+            .authorizeRequests(requests -> requests
                 .antMatchers("/adminpage/**").hasRole("ADMIN")
                 .antMatchers("/", "/login").permitAll()
                 .anyRequest().hasAnyRole("USER"))

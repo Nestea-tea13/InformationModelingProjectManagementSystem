@@ -13,12 +13,30 @@
 <header th:insert="blocks/headers :: header-user-page"></header>
 
 <div class="container mt-4">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>📋 Задача: <span th:text="${task.title}"></span></h5>
-                    <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary btn-sm">← К списку задач</a>
+                    <a href="/tasks/by-me" class="btn btn-secondary btn-sm">← К списку задач</a>
                 </div>
                 <div class="card-body">
 
@@ -78,9 +96,31 @@
                         <div class="font-weight-bold" th:text="${task.description != null && task.description != '' ? task.description : '—'}"></div>
                     </div>
 
+                    <!-- Блок прикреплённых файлов -->
+                    <div class="mb-3">
+                        <small class="text-muted">Прикреплённые файлы</small>
+                        <div th:if="${not #lists.isEmpty(documents)}">
+                            <ul class="list-group">
+                                <li th:each="doc : ${documents}" class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span th:text="${doc.originalName}"></span>
+                                    <div>
+                                        <a th:href="@{/documents/download/{id}(id=${doc.id})}" class="btn btn-sm btn-outline-primary">Скачать</a>
+                                        <button th:if="${isAssignee and task.status.name() == 'IN_PROGRESS'}"
+                                            type="button" class="btn btn-sm btn-outline-danger ml-1"
+                                            th:attr="data-remodal-target='modal-delete-file-' + ${doc.id}"
+                                            data-tooltip="Удалить файл">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="font-weight-bold"><span th:unless="${not #lists.isEmpty(documents)}">—</span></div>
+                    </div>
+
                     <div th:if="${task.statusComment != null}" class="mb-3">
                         <small class="text-muted">Комментарий к статусу</small>
-                        <div class="border rounded p-2 bg-warning text-dark" th:text="${task.statusComment}"></div>
+                        <div class="border rounded p-2 text-warning" th:text="${task.statusComment}"></div>
                     </div>
                     <hr th:if="${task.status.name() != 'REVIEW' and task.status.name() != 'COMPLETED'}">
 
@@ -109,6 +149,32 @@
                     </div>
                 </div>
             </div>
+
+            <div th:if="${isAssignee and task.status.name() == 'IN_PROGRESS'}" class="mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>📎 Прикрепить файлы к задаче</strong>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/upload'}" 
+                            method="post" enctype="multipart/form-data" class="d-flex flex-wrap align-items-start">
+                            <div class="flex-grow-1 mr-2">
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <label for="taskFiles" class="btn btn-outline-secondary mb-0 mr-2">
+                                        📁 Выбрать файлы
+                                    </label>
+                                    <input type="file" name="files" multiple id="taskFiles" 
+                                        style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.ifc,.png,.jpg">
+                                    <span id="fileNames" class="text-muted">Файлы не выбраны</span>
+                                </div>
+                                <small class="form-text text-muted">Поддерживаемые форматы: PDF, Word, Excel, IFC, изображения</small>
+                            </div>
+                            <button type="submit" id="uploadBtn" class="btn btn-primary" disabled>Загрузить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
     <br>
@@ -117,6 +183,33 @@
 <script>
     $(function () {
         $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('[data-remodal-id]').remodal();
+    });
+</script>
+
+<script>
+    const fileInput = document.getElementById('taskFiles');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileNamesSpan = document.getElementById('fileNames');
+
+    fileInput.addEventListener('change', function() {
+        const files = this.files;
+        if (files.length > 0) {
+            uploadBtn.disabled = false;
+            if (files.length > 1) {
+                fileNamesSpan.textContent = 'Выбрано файлов: ' + files.length;
+            } else {
+                fileNamesSpan.textContent = files[0].name;
+            }
+        } else {
+            uploadBtn.disabled = true;
+            fileNamesSpan.textContent = 'Файлы не выбраны';
+        }
     });
 </script>
 
@@ -150,6 +243,19 @@
             <button data-remodal-action="cancel" class="remodal-cancel">Отмена</button>
         </div>
     </form>
+</div>
+
+<!-- Модальные окна для удаления файлов -->
+<div th:each="doc : ${documents}" th:if="${isAssignee and task.status.name() == 'IN_PROGRESS'}">
+    <div class="remodal text-center" th:data-remodal-id="'modal-delete-file-' + ${doc.id}">
+        <button data-remodal-action="close" class="remodal-close"></button>
+        <h1>Удаление файла</h1>
+        <p>Вы действительно хотите удалить файл <strong th:text="${doc.originalName}"></strong>?</p>
+        <form th:action="@{'/projects/' + ${project.id} + '/tasks/' + ${task.id} + '/delete-file/' + ${doc.id}}" method="post">
+            <button type="submit" class="remodal-confirm">Да, удалить</button>
+            <button data-remodal-action="cancel" class="remodal-cancel">Нет</button>
+        </form>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
