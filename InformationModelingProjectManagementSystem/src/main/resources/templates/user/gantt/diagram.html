@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Диаграмма Ганта</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css" />
+    <style>
+        body {
+            overflow-x: auto;
+        }
+        .gantt-container {
+            width: 100%;
+            min-width: 800px;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        
+        /* Убрать серый цвет при клике на задачу */
+        .bar:active {
+            fill: inherit !important;
+            opacity: 1 !important;
+        }
+        .bar:hover {
+            filter: brightness(0.95);
+            cursor: pointer;
+        }
+        
+        /* Скрыть стандартную всплывающую подсказку */
+        .popup-wrapper {
+            display: none !important;
+        }
+        
+        /* Стили для модального окна */
+        #modalTaskContent strong {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .filters-row {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+        }
+
+        .filter-group label {
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .filter-group select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            background-color: white;
+            min-width: 180px;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .reset-filters-btn {
+            margin-top: 22px;
+        }
+
+        @media (max-width: 768px) {
+            .filters-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .reset-filters-btn {
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+<header th:insert="blocks/headers :: header-user-page"></header>
+
+<div class="container-fluid mt-4" style="max-width: 95%;">
+    <div class="filter-bar text-center mb-4">
+        <form method="get" action="/gantt" class="form-inline justify-content-center" id="projectForm">
+            <strong class="mr-3 h4">Диаграмма Ганта для проекта:</strong>
+            <select name="projectId" class="form-control mr-2" style="min-width: 260px;" onchange="this.form.submit()" id="projectSelect">
+                <option value="">— Выберите проект —</option>
+                <option th:each="p : ${userProjects}" th:value="${p.id}" th:text="${p.name}" th:selected="${selectedProjectId == p.id}"></option>
+            </select>
+            <a th:href="@{/gantt}" class="btn btn-sm btn-outline-secondary">Сбросить</a>
+        </form>
+    </div>
+
+    <!-- Блок фильтров (виден только когда выбран проект) -->
+    <div th:if="${selectedProjectId != null}" class="filters-row" id="filtersRow">
+        <div class="filter-group">
+            <label>📊 Статус задачи:</label>
+            <select id="statusFilter">
+                <option value="all">— Все статусы —</option>
+                <option value="ASSIGNED">Назначена</option>
+                <option value="IN_PROGRESS">В работе</option>
+                <option value="REVIEW">На проверке</option>
+                <option value="COMPLETED">Завершена</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>📁 Раздел ИМ:</label>
+            <select id="disciplineFilter">
+                <option value="all">— Все разделы —</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>👤 Исполнитель:</label>
+            <select id="assigneeFilter">
+                <option value="all">— Все исполнители —</option>
+            </select>
+        </div>
+        <div class="reset-filters-btn">
+            <button id="resetFiltersBtn" class="btn btn-sm btn-outline-secondary">Сбросить фильтры</button>
+        </div>
+    </div>
+
+    <div th:if="${selectedProjectId == null}" class="alert alert-info text-center">
+        Выберите проект для просмотра диаграммы Ганта.
+    </div>
+
+    <div th:if="${selectedProjectId != null}" class="card">
+        <div class="card-body gantt-container">
+            <div id="gantt"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для отображения деталей задачи -->
+<div class="modal fade" id="taskModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Детали задачи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modalTaskContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <a href="#" id="modalTaskLink" class="btn btn-primary">Перейти к задаче</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.umd.js"></script>
+<script>
+    // Глобальные переменные
+    let originalTasks = [];
+    let currentProjectId = null;
+    let ganttInstance = null;
+    
+    // Функция для склонения слова "день"
+    function getDaysText(days) {
+        if (days % 10 === 1 && days % 100 !== 11) return 'день';
+        if (days % 10 >= 2 && days % 10 <= 4 && (days % 100 < 10 || days % 100 >= 20)) return 'дня';
+        return 'дней';
+    }
+    
+    // Функция для фильтрации задач
+    function filterTasks() {
+        const statusFilter = document.getElementById('statusFilter');
+        const disciplineFilter = document.getElementById('disciplineFilter');
+        const assigneeFilter = document.getElementById('assigneeFilter');
+        
+        const selectedStatus = statusFilter ? statusFilter.value : 'all';
+        const selectedDiscipline = disciplineFilter ? disciplineFilter.value : 'all';
+        const selectedAssignee = assigneeFilter ? assigneeFilter.value : 'all';
+        
+        if (!originalTasks.length) return [];
+        
+        let filtered = [...originalTasks];
+        
+        // Фильтр по статусу
+        if (selectedStatus !== 'all') {
+            filtered = filtered.filter(task => task.status === selectedStatus);
+        }
+        
+        // Фильтр по разделу ИМ
+        if (selectedDiscipline !== 'all') {
+            filtered = filtered.filter(task => task.discipline === selectedDiscipline);
+        }
+        
+        // Фильтр по исполнителю
+        if (selectedAssignee !== 'all') {
+            filtered = filtered.filter(task => task.assigneeName === selectedAssignee);
+        }
+        
+        // Сортировка по дате начала
+        filtered.sort(function(a, b) {
+            return new Date(a.start) - new Date(b.start);
+        });
+        
+        return filtered;
+    }
+    
+    // Функция для обновления диаграммы
+    function updateGantt() {
+        const filteredTasks = filterTasks();
+        const ganttContainer = document.querySelector('#gantt');
+        
+        if (!ganttContainer) return;
+        
+        if (filteredTasks.length > 0) {
+            ganttContainer.innerHTML = '';
+            
+            ganttInstance = new Gantt("#gantt", filteredTasks, {
+                language: "ru",
+                on_click: function (task) {
+                    fetch('/projects/' + currentProjectId + '/tasks/' + task.id + '/data')
+                        .then(response => response.json())
+                        .then(fullTask => {
+                            var startDate = new Date(fullTask.startDate);
+                            var endDate = new Date(fullTask.endDate);
+                            var formattedStart = startDate.toLocaleDateString('ru-RU');
+                            var formattedEnd = endDate.toLocaleDateString('ru-RU');
+                            
+                            var diffTime = Math.abs(endDate - startDate);
+                            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            var daysText = getDaysText(diffDays);
+                            
+                            var modalHtml = 
+                                '<strong>Название:</strong> ' + fullTask.title + '<br>' +
+                                (fullTask.discipline ? '<strong>Раздел ИМ:</strong> ' + fullTask.discipline + '<br>' : '') +
+                                '<strong>Статус:</strong> ' + fullTask.statusName + '<br>' +
+                                '<strong>Дата начала:</strong> ' + formattedStart + '<br>' +
+                                '<strong>Срок выполнения:</strong> ' + formattedEnd;
+                            
+                            if (diffDays > 0) {
+                                modalHtml += '<br><strong>Длительность:</strong> ' + diffDays + ' ' + daysText;
+                            }
+                            
+                            modalHtml += 
+                                '<br><strong>Назначивший:</strong> ' + fullTask.assignerName + '<br>' +
+                                '<strong>Исполнитель:</strong> ' + fullTask.assigneeName;
+                            
+                            document.getElementById('modalTaskContent').innerHTML = modalHtml;
+                            document.getElementById('modalTaskLink').href = '/projects/' + currentProjectId + '/tasks/' + task.id;
+                            $('#taskModal').modal('show');
+                        })
+                        .catch(err => {
+                            console.error('Ошибка загрузки данных задачи:', err);
+                            document.getElementById('modalTaskContent').innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных задачи</div>';
+                            $('#taskModal').modal('show');
+                        });
+                },
+                on_date_change: function(task, start, end) {
+                    console.log('Изменение дат', task.id, start, end);
+                }
+            });
+        } else {
+            ganttContainer.innerHTML = '<div class="alert alert-warning">Нет задач, соответствующих выбранным фильтрам.</div>';
+        }
+    }
+    
+    // Инициализация страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        currentProjectId = urlParams.get('projectId');
+        
+        if (currentProjectId) {
+            fetch('/gantt/data/' + currentProjectId)
+                .then(response => response.json())
+                .then(tasks => {
+                    if (tasks && tasks.length > 0) {
+                        originalTasks = tasks;
+                        
+                        // Получение уникальных разделов ИМ для фильтра
+                        const disciplines = [...new Set(tasks.map(t => t.discipline || 'Без раздела'))];
+                        const disciplineSelect = document.getElementById('disciplineFilter');
+                        if (disciplineSelect) {
+                            disciplines.forEach(discipline => {
+                                const option = document.createElement('option');
+                                option.value = discipline;
+                                option.textContent = discipline;
+                                disciplineSelect.appendChild(option);
+                            });
+                        }
+                        
+                        // Получение уникальных исполнителей для фильтра
+                        const assignees = [...new Set(tasks.map(t => t.assigneeName || 'Не назначен'))];
+                        const assigneeSelect = document.getElementById('assigneeFilter');
+                        if (assigneeSelect) {
+                            assignees.forEach(assignee => {
+                                const option = document.createElement('option');
+                                option.value = assignee;
+                                option.textContent = assignee;
+                                assigneeSelect.appendChild(option);
+                            });
+                        }
+                        
+                        const statusFilter = document.getElementById('statusFilter');
+                        const disciplineFilter = document.getElementById('disciplineFilter');
+                        const assigneeFilter = document.getElementById('assigneeFilter');
+                        const resetBtn = document.getElementById('resetFiltersBtn');
+                        
+                        if (statusFilter) statusFilter.addEventListener('change', updateGantt);
+                        if (disciplineFilter) disciplineFilter.addEventListener('change', updateGantt);
+                        if (assigneeFilter) assigneeFilter.addEventListener('change', updateGantt);
+                        if (resetBtn) {
+                            resetBtn.addEventListener('click', function() {
+                                if (statusFilter) statusFilter.value = 'all';
+                                if (disciplineFilter) disciplineFilter.value = 'all';
+                                if (assigneeFilter) assigneeFilter.value = 'all';
+                                updateGantt();
+                            });
+                        }
+                        updateGantt();
+                        
+                    } else {
+                        document.getElementById('gantt').innerHTML = '<div class="alert alert-warning">Нет задач для отображения.</div>';
+                        const filtersRow = document.getElementById('filtersRow');
+                        if (filtersRow) filtersRow.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Ошибка загрузки данных Ганта:', err);
+                    document.getElementById('gantt').innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных.</div>';
+                    const filtersRow = document.getElementById('filtersRow');
+                    if (filtersRow) filtersRow.style.display = 'none';
+                });
+        }
+    });
+</script>
+
+</body>
+</html>

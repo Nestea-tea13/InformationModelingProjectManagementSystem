@@ -1,5 +1,8 @@
 package com.InformationModelingProjectManagementSystem.controllers;
 
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -80,6 +84,10 @@ public class TaskController {
             return "redirect:/projects/" + projectId + "/tasks/" + taskId;
         }
         task.setStatus(TaskStatus.IN_PROGRESS);
+        if (task.getPlannedStartDate() == null) {
+            task.setPlannedStartDate(LocalDate.now());
+        }
+
         taskService.save(task);
         redirectAttributes.addFlashAttribute("success", "Задача принята в работу");
         return "redirect:/projects/" + projectId + "/tasks/" + taskId;
@@ -237,6 +245,26 @@ public class TaskController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/projects/" + projectId + "/tasks/" + taskId;
+    }
+
+    @GetMapping("/{taskId}/data")
+    @ResponseBody
+    public Map<String, Object> getTaskData(@PathVariable int projectId, @PathVariable int taskId) {
+        Optional<Task> taskOpt = taskService.findById(taskId);
+        if (taskOpt.isEmpty()) return Map.of();
+        Task task = taskOpt.get();
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", task.getId());
+        data.put("title", task.getTitle());
+        data.put("discipline", task.getDisciplineShortName());
+        data.put("statusName", task.getStatusDisplayName());
+        data.put("startDate", task.getStartDateForGantt().toString());
+        data.put("endDate", task.getDeadline().toString());
+        data.put("assignerName", task.getAssigner().getSername() + " " + task.getAssigner().getName());
+        data.put("assigneeName", task.getAssignee().getSername() + " " + task.getAssignee().getName());
+        
+        return data;
     }
     
 }

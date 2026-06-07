@@ -52,6 +52,10 @@ public class Task {
     private LocalDate createdAt;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "planned_start_date")
+    private LocalDate plannedStartDate;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "Срок выполнения обязателен")
     @Column(name = "deadline", nullable = false)
     private LocalDate deadline;
@@ -93,6 +97,9 @@ public class Task {
     public LocalDate getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
 
+    public LocalDate getPlannedStartDate() { return plannedStartDate; }
+    public void setPlannedStartDate(LocalDate plannedStartDate) { this.plannedStartDate = plannedStartDate; }
+    
     public LocalDate getDeadline() { return deadline; }
     public void setDeadline(LocalDate deadline) { this.deadline = deadline; }
 
@@ -123,6 +130,11 @@ public class Task {
 
     public String getDisciplineShortName() {
         return discipline != null ? discipline.getShortName() : "—";
+    }
+
+    // Получение даты начала для диаграммы
+    public LocalDate getStartDateForGantt() {
+        return plannedStartDate != null ? plannedStartDate : createdAt;
     }
     
 }

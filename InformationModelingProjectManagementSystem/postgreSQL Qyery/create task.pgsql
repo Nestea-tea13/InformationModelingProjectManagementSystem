@@ -6,6 +6,7 @@ CREATE TABLE Task (
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    planned_start_date DATE,
     deadline DATE NOT NULL,
     status VARCHAR(20) NOT NULL,
     status_comment VARCHAR(500)

@@ -99,6 +99,12 @@
                             <label class="form-check-label" for="assignToSelf">Назначить задачу самому себе</label>
                         </div>
 
+                        <div class="form-group">
+                            <label>Плановая дата начала</label>
+                            <input type="date" th:field="*{plannedStartDate}" class="form-control">
+                            <small class="form-text text-muted">Если не указывать, будет заполнена датой начала работы над задачей</small>
+                        </div>
+
                         <div th:if="${#fields.hasErrors('deadline')}" class="alert alert-danger">
                             <div th:errors="*{deadline}"></div>
                         </div>

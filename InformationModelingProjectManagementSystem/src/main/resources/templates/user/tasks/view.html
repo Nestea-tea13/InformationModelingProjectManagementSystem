@@ -77,17 +77,23 @@
                             <div class="font-weight-bold" th:text="${#temporals.format(task.createdAt, 'dd.MM.yyyy')}"></div>
                         </div>
                         <div class="col-md-6">
-                            <small class="text-muted">Срок выполнения</small>
-                            <div class="font-weight-bold" th:classappend="${task.overdue and task.status.name() != 'COMPLETED' and task.status.name() != 'REJECTED'} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
+                            <small class="text-muted">Раздел ИМ</small>
+                            <div class="font-weight-bold">
+                                <span th:if="${task.discipline != null}" data-toggle="tooltip" 
+                                    th:title="${task.discipline.fullName}" th:text="${task.discipline.shortName}"></span>
+                                <span th:unless="${task.discipline != null}">—</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <small class="text-muted">Раздел ИМ</small>
-                        <div class="font-weight-bold">
-                            <span th:if="${task.discipline != null}" data-toggle="tooltip" 
-                                th:title="${task.discipline.fullName}" th:text="${task.discipline.shortName}"></span>
-                            <span th:unless="${task.discipline != null}">—</span>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Плановая дата начала</small>
+                            <div class="font-weight-bold" th:text="${task.plannedStartDate != null ? #temporals.format(task.plannedStartDate, 'dd.MM.yyyy') : '—'}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Срок выполнения</small>
+                            <div class="font-weight-bold" th:classappend="${task.overdue and task.status.name() != 'COMPLETED' and task.status.name() != 'REJECTED'} ? 'text-danger' : ''" th:text="${task.formattedDeadline}"></div>
                         </div>
                     </div>
 
